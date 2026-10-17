@@ -1,15 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeReelUrl, validateTrip, validateAssignments, validateRecommendation, validatePreferences, validateFirmLimits, validateMemberCriteria } from '../contracts/index.js';
+import { normalizeInstagramUrl, normalizeReelUrl, validateTrip, validateAssignments, validateRecommendation, validatePreferences, validateFirmLimits, validateMemberCriteria } from '../contracts/index.js';
 import { demoSnapshot, lisbonSnapshot } from '../contracts/fixtures.js';
 import { generateItinerary } from '../utils/itinerary.js';
 import { buildGroupRecommendation, createRecommendationInput } from '../utils/recommendation.js';
 import { buildTripBoard } from '../utils/trip-board.js';
 import { toBoardingPassCard, toFrontendTripBoard } from '../utils/frontend-card.js';
+import { adaptInstagramExtraction } from '../utils/instagram-import.js';
 const demo = () => structuredClone(demoSnapshot);
 test('normalizes duplicate Reel links and rejects unsafe or unrelated URLs', () => {
  assert.equal(normalizeReelUrl('https://instagram.com/reel/Ab_1/?igsh=abc'), 'https://www.instagram.com/reel/Ab_1/');
- for (const url of ['http://instagram.com/reel/a', 'https://instagram.com.evil/reel/a', 'https://user:pass@instagram.com/reel/a', 'https://instagram.com/p/a']) assert.throws(() => normalizeReelUrl(url));
+ assert.equal(normalizeInstagramUrl('https://instagram.com/p/Post_1/?utm_source=x'), 'https://www.instagram.com/p/Post_1/');
+ for (const url of ['http://instagram.com/reel/a', 'https://instagram.com.evil/reel/a', 'https://user:pass@instagram.com/reel/a', 'https://instagram.com/stories/a']) assert.throws(() => normalizeReelUrl(url));
 });
 test('rejects invalid dates, reversed dates and excessive trip length', () => {
  for (const patch of [{ startDate:'2026-02-30' }, { endDate:'2026-01-01' }, { endDate:'2027-01-01' }]) assert.throws(() => validateTrip({...demo().trip,...patch}));
@@ -149,4 +151,28 @@ test('frontend adapter uses safe fallbacks for a manual place without a Reel', (
  const result=toBoardingPassCard({card,members:[]});
  assert.equal(result.location,'Location unknown'); assert.equal(result.cost,'Cost unknown');
  assert.equal(result.reelUrl,''); assert.equal(result.thumbnailUrl,null); assert.equal(result.label,'needs_info');
+});
+test('adapts backend Instagram candidates into uncertain shared records', () => {
+ const result={
+  canonicalUrl:'https://www.instagram.com/p/Demqe5ltfbs/', status:'completed', runStatus:'COMPLETED',
+  extraction:{candidates:[{name:'Cala Mitjana',locationContext:'Menorca, Spain',uncertain:true,evidence:[{
+   sourceUrl:'https://www.instagram.com/p/Demqe5ltfbs/',kind:'caption',path:'data.caption',timestamp_seconds:null,quote:'📍Cala Mitjana, Menorca, Spain',
+  }]}]},
+ };
+ const adapted=adaptInstagramExtraction({tripId:'trip-1',contributorId:'a',importId:'import-backend-1',result,retrievedAt:'2026-10-17T21:24:18Z',thumbnailUrl:null});
+ assert.equal(adapted.import.status,'needs_confirmation');
+ assert.equal(adapted.import.normalizedUrl,result.canonicalUrl);
+ assert.equal(adapted.import.thumbnailUrl,null);
+ assert.deepEqual(adapted.import.contributorIds,['a']);
+ assert.equal(adapted.places[0].name,'Cala Mitjana');
+ assert.equal(adapted.places[0].area,'Menorca, Spain');
+ assert.equal(adapted.places[0].matchStatus,'uncertain');
+ assert.equal(adapted.importPlaces[0].placeId,adapted.places[0].id);
+ assert.deepEqual(adapted.evidence[0].facts,['📍Cala Mitjana, Menorca, Spain']);
+});
+test('empty extraction stays reviewable and invalid thumbnail URLs are rejected', () => {
+ const result={canonicalUrl:'https://www.instagram.com/reel/Empty/',status:'completed',runStatus:'COMPLETED',extraction:{candidates:[]}};
+ const input={tripId:'trip-1',contributorId:'a',importId:'empty',result,retrievedAt:'2026-10-17T21:24:18Z'};
+ assert.equal(adaptInstagramExtraction(input).import.errorCode,'no_explicit_place');
+ assert.throws(()=>adaptInstagramExtraction({...input,thumbnailUrl:'http://images.example/reel.jpg'}));
 });

@@ -47,6 +47,7 @@ CREATE TABLE import_places (
 CREATE TABLE evidence (
  id TEXT PRIMARY KEY, trip_id TEXT NOT NULL, place_id TEXT NOT NULL,
  source_url TEXT NOT NULL, retrieved_at TEXT NOT NULL, facts_json TEXT NOT NULL,
+ source_kind TEXT, source_path TEXT, timestamp_seconds REAL CHECK(timestamp_seconds IS NULL OR timestamp_seconds >= 0),
  FOREIGN KEY(trip_id, place_id) REFERENCES places(trip_id, id)
 );
 CREATE TABLE recommendations (

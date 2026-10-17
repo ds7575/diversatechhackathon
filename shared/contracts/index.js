@@ -77,14 +77,17 @@ export function validateTrip(input) {
     throw new RangeError('Prototype trips support at most 30 days');
   return input;
 }
-export function normalizeReelUrl(value) {
+export function normalizeInstagramUrl(value) {
   const url = new URL(value);
   if (url.protocol !== 'https:' || !['instagram.com', 'www.instagram.com'].includes(url.hostname) || url.port || url.username || url.password)
-    throw new TypeError('Expected a public HTTPS Instagram Reel URL');
-  const match = /^\/reel\/([A-Za-z0-9_-]+)\/?$/.exec(url.pathname);
-  if (!match) throw new TypeError('Expected /reel/<shortcode>/');
-  return `https://www.instagram.com/reel/${match[1]}/`;
+    throw new TypeError('Expected a public HTTPS Instagram post URL');
+  const match = /^\/(p|reel|reels|tv)\/([A-Za-z0-9_-]+)\/?$/.exec(url.pathname);
+  if (!match) throw new TypeError('Expected an Instagram post or Reel permalink');
+  return `https://www.instagram.com/${match[1]}/${match[2]}/`;
 }
+
+/** Backwards-compatible name retained for existing frontend/backend imports. */
+export const normalizeReelUrl = normalizeInstagramUrl;
 export function validateAssignments(assignments, places, trip) {
   validateTrip(trip);
   if (!Array.isArray(assignments)) throw new TypeError('assignments must be an array');
