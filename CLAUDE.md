@@ -5,17 +5,19 @@ Differentiator: suggestion → researched place → group interest + concerns �
 Scale: ~20–30 Reels, groups of 3–8.
 
 ## Stack
-- Next.js (App Router, TypeScript, Tailwind): mobile web frontend + API routes in one app
+- `frontend/`: Next.js (App Router, TypeScript, Tailwind, src dir), calls backend via `NEXT_PUBLIC_API_URL`; mock data when `NEXT_PUBLIC_USE_MOCK=true`
+- `backend/`: Node API server (see docs/architecture.md), holds all API keys
 - Supabase Postgres + Realtime (edits sync across phones)
 - Glasser API: Reel info, media download, transcript, place search (Serper), webpage extraction
 - Claude API: Haiku for extraction/briefs, Sonnet for plan generation; vision for sampled frames (stretch)
 - Run locally, expose via cloudflared/ngrok for iPhones + iOS Shortcut
+- See docs/architecture.md and docs/product-scope.md for system design.
 
 ## File ownership (only edit your lane)
-- Frontend: `app/(pages)/*`, `components/*`, `lib/mock.ts`
-- Backend: `supabase/schema.sql`, `lib/glasser.ts`, `lib/claude.ts`, `lib/pipeline/*`, `lib/spend.ts`, `app/api/import/`, `app/api/plan/`, `fixtures/*`
-- Linker: `CLAUDE.md`, `lib/types.ts`, `lib/supabase.ts`, `lib/auth.ts`, `app/api/reactions/`, `app/api/places/`, `app/api/trips/`, `app/join/`, `hooks/*`
-- `lib/types.ts` is the shared contract. Only the linker edits it. Need a field? Say so.
+- Frontend: `frontend/` only
+- Backend: `backend/` only
+- Linker: `shared/` (contracts, database schema, utils), `docs/`, `CLAUDE.md`
+- `shared/contracts` is the shared type contract. Only the linker edits it. Need a field? Say so.
 
 ## Data model
 ```
@@ -77,8 +79,44 @@ Ambiguous match → `needs_confirmation`, excluded from planning until a member 
 - Plan: day buckets with explanation + Unassigned. "Move to day" select (no required drag), "Remove from plan".
 - Correction flows: confirm match, fix match, add place manually, retry failed import.
 - Accessibility: 44pt targets, VoiceOver labels, text not color alone, no autoplay, no clipping at large text, `aria-live="polite"` for import status only.
-- Design: [fill in aesthetic, 2 fonts, 3–4 hex colors]. Avoid gradients, purple/blue defaults, Inter, emoji icons, rounded-2xl shadow cards.
 - Components take handlers as props (`onReact`, `onMoveDay`, `onConfirm`, `onFixMatch`, `onRetry`) so mocks swap for real calls.
+
+## Design: "Airmail & Boarding Pass"
+Playful, student-friendly travel theme. Bright and tactile, never corporate or drab.
+
+**Palette (CSS vars in globals.css)**
+- `--paper` #FFF6E5 (warm cream background), `--card` #FFFFFF
+- `--ink` #14213D (navy text), `--ink-soft` #4A5578
+- `--airmail-red` #E63946 (primary actions, concerns), `--airmail-blue` #2B59C3 (links, Plan tab)
+- `--sun` #FFC93C (highlights, "Strong option"), `--mint` #3FB68B (Interested)
+- Airmail stripe (repeating red/blue diagonal) as an accent border only: header bottom, card tops. Not full backgrounds.
+
+**Type (Google Fonts via next/font)**
+- Headings: Bricolage Grotesque 700–800, big and tight (trip name 40px+)
+- Body: DM Sans
+- Codes and labels: Space Mono, uppercase, letter-spaced (DAY 01, GATE, costs, dates)
+- Handwritten notes on concerns: Caveat
+
+**Signature components**
+- Trip header = postcard: huge destination name, dates as "DEPART / RETURN" in mono, member avatars as round initials stickers, airmail stripe underneath.
+- Place card = boarding pass: perforated dashed divider with notched circles; left "ticket" has name, summary, cost, caveats; right "stub" has the reaction buttons and contributor. Reel link as "View original ✈".
+- Recommendation label = rotated passport stamp (dashed border, -6deg): STRONG OPTION (sun), WORTH DISCUSSING (blue), NEEDS INFO (ink-soft).
+- Concerns = luggage-tag chips (tag shape with hole) and the note in Caveat.
+- Plan days = flight legs: "DAY 01 · LEG A" header, dotted flight path line connecting places down the left edge with a small plane icon on it. Unassigned = "Standby".
+- Import status = small plane flying along a dotted arc while processing; lands with a check when ready; failed shows a red "Delayed, Retry" pill.
+- Empty state: illustrated SVG paper plane + "No boarding passes yet, share a Reel to get started."
+
+**Interaction and motion (makes it feel alive)**
+- Tap a reaction: stamp-press animation (scale 1.15 → 1, slight rotate) + count bumps.
+- Move to day: card slides out and the plane icon hops to the new leg.
+- Generate plan: button becomes "Boarding…" with a plane taxiing across; days fade in one by one.
+- Tabs as a toggle with a sliding indicator; cards lift slightly on press.
+- Use CSS transitions or Framer Motion only. Wrap all motion in `prefers-reduced-motion` and make it instant when reduced.
+
+**Icons:** lucide-react (Plane, PlaneTakeoff, MapPin, Luggage, Ticket, Stamp). No emoji as icons.
+
+**Avoid:** purple/indigo, full-page gradients, Inter, generic rounded-2xl + drop-shadow cards, centered SaaS hero, stock-photo backgrounds.
+**Keep accessible:** all text ≥ 4.5:1 contrast on cream; color is never the only signal (labels always have text); decorations are `aria-hidden`.
 
 ## Out of scope
 Native app, TikTok/YouTube, booking/payments, expense splitting, hourly schedules, route optimization, auto-replanning, group chat, push notifications, maps (lists only).
