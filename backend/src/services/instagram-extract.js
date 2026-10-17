@@ -8,7 +8,7 @@ const execFileAsync = promisify(execFile);
 const PROVIDER = 'scrapecreators';
 const ENDPOINT = '/v1/instagram/post';
 const VERSION = 2;
-const PARSER_VERSION = 9;
+const PARSER_VERSION = 10;
 const CACHE_VERSION = 1;
 const MAX_PROJECT_SPEND = money('9.00');
 const DEFAULT_STORE = path.resolve(__dirname, '../../.data/instagram');
@@ -180,7 +180,26 @@ function extractFromResponse(input, sourceUrl) {
   }
 
   for (const item of sources.filter(source => source.extracted_text)) {
+    let namedList = false;
+    let listHadBlank = false;
     for (const line of item.extracted_text.split(/\r?\n/)) {
+      if (/(?:top|best|favorite|favourite)\b.*\b(?:picks|spots|restaurants|places)|\b(?:picks|spots|restaurants|places)\s*:/iu.test(line)) {
+        namedList = true;
+        listHadBlank = false;
+        continue;
+      }
+      if (namedList && !line.trim()) {
+        listHadBlank = true;
+        continue;
+      }
+      const handleInList = namedList && /^\s*[^\p{L}\p{N}@]*@([A-Za-z0-9._]{2,30})\b/u.exec(line);
+      const namedListItem = namedList && /^\s*[^\p{L}\p{N}]*([\p{L}][\p{L}\p{M}0-9'’.-]{1,80})\s+(?:for|—|-)\s+\S/u.exec(line);
+      if (handleInList || namedListItem) {
+        addCandidate((handleInList || namedListItem)[1], { kind: item.source, path: item.evidence_path || null, timestamp_seconds: item.timestamp_seconds, quote: line.trim() });
+        listHadBlank = false;
+        continue;
+      }
+      if (namedList && listHadBlank) namedList = false;
       const match = /^\s*(?:📍|(?:place|location|venue)\s*:)\s*(.{2,100})\s*$/iu.exec(line);
       if (match) {
         const [name, ...context] = match[1].split(',');
@@ -199,6 +218,10 @@ function extractFromResponse(input, sourceUrl) {
       }
       const describedPlace = /\bvisit to the\s+([\p{L}\p{M}]+(?:\s+[\p{L}\p{M}]+){0,4})\s+\((?:mountains?|beaches?|cities|city|towns?|villages?|islands?|parks?|lakes?|cathedrals?|castles?)\)/giu;
       for (const match of item.extracted_text.matchAll(describedPlace)) {
+        addCandidate(match[1], { kind: item.source, path: item.evidence_path || null, timestamp_seconds: item.timestamp_seconds, quote: match[0] });
+      }
+      const geographicPlace = /\b(?:city|town|village|island|beach|coastal area|region)\s+of\s+(\p{Lu}[\p{L}\p{M}]+(?:\s+(?:(?:de|del|la|the)\s+)?\p{Lu}[\p{L}\p{M}]+){0,4})/gu;
+      for (const match of item.extracted_text.matchAll(geographicPlace)) {
         addCandidate(match[1], { kind: item.source, path: item.evidence_path || null, timestamp_seconds: item.timestamp_seconds, quote: match[0] });
       }
     }
