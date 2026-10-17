@@ -116,3 +116,23 @@ test('caption prose keeps named places and rejects an informational label', () =
   assert.equal(result.candidates.some(candidate => candidate.name === 'Good to know'), false);
   assert.equal(result.candidates.every(candidate => candidate.uncertain), true);
 });
+
+test('a labeled food-pick list yields only its explicit venues and city', () => {
+  const response = providerResponse();
+  response.data.xdt_shortcode_media.edge_media_to_caption.edges[0].node.text = [
+    'We are eager to try the food in the beautiful city of Girona!',
+    'Some of our top food picks:',
+    '🍾 @cellercanroca of course what we came for!',
+    '✨ @restaurantmassana authentic Spanish fine dining',
+    '🦐 @escabetxrestaurant for amazing seafood!',
+    '🥘 Probocador for paellas!',
+    '',
+    'Follow @travelwiththewesties for travel inspiration.',
+  ].join('\n');
+  response.data.xdt_shortcode_media.ocr_text = '';
+  const result = extractFromResponse(buildExtractionInput(response), URL);
+  assert.deepEqual(result.candidates.map(candidate => candidate.name), [
+    'cellercanroca', 'restaurantmassana', 'escabetxrestaurant', 'Probocador', 'Girona',
+  ]);
+  assert.equal(result.candidates.some(candidate => candidate.name === 'travelwiththewesties'), false);
+});
