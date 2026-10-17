@@ -89,8 +89,8 @@ export function ReelsSection({ reels, onAdd, onRetry, onReact, onConfirm, onFixM
     try {
       await onAdd(url.trim());
       setUrl("");
-    } catch {
-      setError("Couldn't save that link. Try again.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Couldn't save that link. Try again.");
     } finally {
       setBusy(false);
     }
