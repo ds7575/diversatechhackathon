@@ -98,6 +98,17 @@ export interface Assignment {
   reason: string;
 }
 
+export interface GeoPoint { latitude: number; longitude: number; id?: string }
+
+export type TripEvent =
+  | { type: 'import.upserted'; tripId: string; record: InstagramImport }
+  | { type: 'place.upserted'; tripId: string; record: Place }
+  | { type: 'recommendation.upserted'; tripId: string; record: Recommendation & { tripId: string } }
+  | { type: 'reaction.upserted'; tripId: string; record: Reaction & { tripId: string } }
+  | { type: 'concern.upserted'; tripId: string; record: Concern & { tripId: string } }
+  | { type: 'reaction.deleted' | 'concern.deleted'; tripId: string; id: string }
+  | { type: 'assignments.replaced'; tripId: string; assignments: Assignment[]; planRevision: number };
+
 export interface MemberEvaluation {
   memberId: string;
   fit: MemberFit;
@@ -139,6 +150,7 @@ export interface SourceReel {
 export interface TripBoardCard {
   placeId: string;
   name: string;
+  matchStatus: MatchStatus;
   area: string | null;
   sourceReel: SourceReel | null;
   brief: string | null;
@@ -179,6 +191,25 @@ export interface BoardingPassCardData {
   mine: ReactionValue | ConcernKind | null;
 }
 
+export type FrontendPlace = Omit<BoardingPassCardData, 'thumbnailUrl'> & {
+  id: string;
+  status: 'ready' | 'needs_confirmation';
+  day: number | null;
+};
+
+export interface FrontendItinerary {
+  generated: boolean;
+  days: Array<{ day: number; explanation: string }>;
+  places: FrontendPlace[];
+}
+
+export interface FrontendReel {
+  id: string;
+  url: string;
+  status: 'processing' | 'ready' | 'failed';
+  places: FrontendPlace[];
+}
+
 export type FrontendTripBoardCard = TripBoardCard & { boardingPass: BoardingPassCardData };
 export type FrontendTripBoard = Omit<TripBoard, 'days' | 'ideas'> & {
   days: Array<Omit<TripBoardDay, 'cards'> & { cards: FrontendTripBoardCard[] }>;
@@ -217,6 +248,7 @@ export const BUDGET_LEVELS: readonly BudgetLevel[];
 export const ACTIVITY_LEVELS: readonly ActivityLevel[];
 export const CROWD_PREFERENCES: readonly CrowdPreference[];
 export const ROUTES: Readonly<Record<string, readonly [string, string]>>;
+export const TRIP_EVENT_TYPES: readonly TripEvent['type'][];
 
 export function isDate(value: unknown): value is string;
 export function normalizeInstagramUrl(value: string): string;
@@ -235,10 +267,18 @@ export function createRecommendationInput(input: { place: Place; members: Member
   evidence: Array<Pick<Evidence, 'facts' | 'sourceUrl' | 'retrievedAt'>>;
 };
 export function buildGroupRecommendation(input: { place: Place; members: Member[]; evaluations: MemberEvaluation[]; evidenceStatus?: EvidenceStatus }): Recommendation;
-export function generateItinerary(input: { trip: Trip; places: Place[]; reactions?: Reaction[]; assignments?: Assignment[]; excludedPlaceIds?: string[]; replaceManual?: boolean; maxPerDay?: number }): Assignment[];
+export function generateItinerary(input: { trip: Trip; places: Place[]; reactions?: Reaction[]; assignments?: Assignment[]; excludedPlaceIds?: string[]; replaceManual?: boolean; maxPerDay?: number; maxClusterKm?: number }): Assignment[];
+export function hasCoordinates(place: Partial<GeoPoint> | null | undefined): place is GeoPoint;
+export function distanceKm(a: GeoPoint, b: GeoPoint): number;
+export function orderByProximity<T extends Partial<GeoPoint> & { id: string }>(places: T[], start?: Partial<GeoPoint> | null): T[];
+export function validateTripEvent<T extends TripEvent>(event: T): T;
+export function applyTripEvent(snapshot: TripSnapshot, event: TripEvent): TripSnapshot;
 export function buildTripBoard(snapshot: Pick<TripSnapshot, 'trip' | 'places'> & Partial<Pick<TripSnapshot, 'imports' | 'importPlaces' | 'recommendations' | 'assignments'>>): TripBoard;
 export function toBoardingPassCard(input: { card: TripBoardCard; members: Member[]; reactions?: Reaction[]; concerns?: Concern[]; currentMemberId?: string | null }): BoardingPassCardData;
 export function toFrontendTripBoard(board: TripBoard, context: { members: Member[]; reactions?: Reaction[]; concerns?: Concern[]; currentMemberId?: string | null }): FrontendTripBoard;
+export function toFrontendPlace(input: { card: TripBoardCard; day?: number | null; members: Member[]; reactions?: Reaction[]; concerns?: Concern[]; currentMemberId?: string | null }): FrontendPlace;
+export function toFrontendItinerary(board: TripBoard, context: { members: Member[]; reactions?: Reaction[]; concerns?: Concern[]; currentMemberId?: string | null }, options?: { generated?: boolean }): FrontendItinerary;
+export function toFrontendReels(snapshot: { imports: InstagramImport[]; importPlaces: ImportPlace[]; board: TripBoard }, context: { members: Member[]; reactions?: Reaction[]; concerns?: Concern[]; currentMemberId?: string | null }): FrontendReel[];
 export function adaptInstagramExtraction(input: {
   tripId: string;
   contributorId: string;

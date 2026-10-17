@@ -28,6 +28,7 @@ function makeCard(place, recommendation, assignment, sourceReel) {
   return {
     placeId: place.id,
     name: place.name,
+    matchStatus: place.matchStatus,
     area: place.area ?? null,
     sourceReel,
     brief: place.brief ?? null,

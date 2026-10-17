@@ -60,3 +60,58 @@ export function toFrontendTripBoard(board, context) {
     ideas: board.ideas.map(adapt),
   };
 }
+
+/** Exact place shape currently consumed by frontend/src/lib/types.ts. */
+export function toFrontendPlace({ card, day = null, ...context }) {
+  if (day !== null && (!Number.isInteger(day) || day < 1)) throw new TypeError('day must be null or a positive integer');
+  const { thumbnailUrl: _thumbnailUrl, ...boardingPass } = toBoardingPassCard({ card, ...context });
+  return {
+    id: card.placeId,
+    ...boardingPass,
+    status: card.matchStatus === 'confirmed' ? 'ready' : 'needs_confirmation',
+    day,
+  };
+}
+
+/** Adapt the shared date-based board to the frontend's numeric day itinerary. */
+export function toFrontendItinerary(board, context, { generated } = {}) {
+  if (!board || !Array.isArray(board.days) || !Array.isArray(board.ideas)) throw new TypeError('A trip board is required');
+  const days = board.days.map((item, index) => ({ day: index + 1, explanation: item.gist }));
+  const planned = board.days.flatMap((item, index) => item.cards.map(card => ({ card, day: index + 1 })));
+  const standby = board.ideas.map(card => ({ card, day: null }));
+  const places = [...planned, ...standby]
+    .filter(item => item.card.matchStatus === 'confirmed')
+    .map(item => toFrontendPlace({ card: item.card, day: item.day, ...context }));
+  return {
+    generated: generated ?? planned.length > 0,
+    days,
+    places,
+  };
+}
+
+const reelStatus = status => ['queued', 'processing'].includes(status) ? 'processing'
+  : status === 'failed' ? 'failed' : 'ready';
+
+/** Build the nested Reel payload used by the current Ideas screen. */
+export function toFrontendReels(snapshot, context) {
+  const board = snapshot.board ?? snapshot;
+  const cards = [...(board.days ?? []).flatMap(day => day.cards), ...(board.ideas ?? [])];
+  const cardByPlace = new Map(cards.map(card => [card.placeId, card]));
+  const dayByPlace = new Map((board.days ?? []).flatMap((day, index) => day.cards.map(card => [card.placeId, index + 1])));
+  return (snapshot.imports ?? []).map(imported => {
+    const links = (snapshot.importPlaces ?? []).filter(link => link.importId === imported.id);
+    const sourceReel = {
+      importId: imported.id,
+      url: imported.normalizedUrl,
+      thumbnailUrl: imported.thumbnailUrl ?? null,
+      contributorIds: imported.contributorIds ?? [],
+    };
+    return {
+      id: imported.id,
+      url: imported.normalizedUrl,
+      status: reelStatus(imported.status),
+      places: links.map(link => cardByPlace.get(link.placeId)).filter(Boolean).map(card =>
+        toFrontendPlace({ card: { ...card, sourceReel }, day: dayByPlace.get(card.placeId) ?? null, ...context })),
+    };
+  });
+}

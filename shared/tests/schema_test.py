@@ -32,3 +32,14 @@ assert db.execute("UPDATE trips SET plan_revision=plan_revision+1 WHERE id='t1' 
 assert db.execute("UPDATE trips SET plan_revision=plan_revision+1 WHERE id='t1' AND plan_revision=0").rowcount == 0
 assert db.execute('PRAGMA foreign_key_check').fetchall() == []
 print('SQLite schema checks passed')
+
+# Supabase schema is checked statically here; execute it against a disposable
+# Supabase/Postgres project before making it a production migration.
+supabase = Path(__file__).resolve().parents[1].joinpath('database/supabase.sql').read_text()
+for table in ['trips', 'members', 'imports', 'places', 'recommendations', 'reactions', 'concerns', 'day_assignments']:
+    assert f'create table if not exists public.{table}' in supabase
+    assert f'alter table public.{table} enable row level security' in supabase
+for required in ['auth.uid()', 'security definer', 'to authenticated', 'supabase_realtime', 'is_trip_member']:
+    assert required in supabase
+assert 'grant select on public.invites' not in supabase
+print('Supabase schema contract checks passed')

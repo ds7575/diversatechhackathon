@@ -10,13 +10,17 @@ export const BUDGET_LEVELS = Object.freeze(['budget', 'moderate', 'premium']);
 export const ACTIVITY_LEVELS = Object.freeze(['low', 'medium', 'high']);
 export const CROWD_PREFERENCES = Object.freeze(['avoid', 'neutral', 'enjoy']);
 export const ROUTES = Object.freeze({
-  createTrip: ['POST', '/trips'], joinTrip: ['POST', '/trips/:tripId/members'],
-  snapshot: ['GET', '/trips/:tripId'], preferences: ['PATCH', '/trips/:tripId/members/me'],
-  importReel: ['POST', '/trips/:tripId/imports'],
-  react: ['PUT', '/trips/:tripId/places/:placeId/reaction'],
-  concern: ['POST', '/trips/:tripId/places/:placeId/concerns'],
-  generatePlan: ['POST', '/trips/:tripId/plan/generate'],
-  savePlan: ['PUT', '/trips/:tripId/plan'],
+  listTrips: ['GET', '/api/trips'], createTrip: ['POST', '/api/trips'],
+  trip: ['GET', '/api/trips/:tripId'], joinTrip: ['POST', '/api/trips/:tripId/members'],
+  reels: ['GET', '/api/trips/:tripId/reels'], importReel: ['POST', '/api/trips/:tripId/reels'],
+  retryReel: ['POST', '/api/trips/:tripId/reels/:reelId/retry'],
+  preferences: ['GET', '/api/trips/:tripId/prefs'], savePreferences: ['PUT', '/api/trips/:tripId/prefs'],
+  react: ['POST', '/api/trips/:tripId/places/:placeId/reactions'],
+  confirmPlace: ['POST', '/api/trips/:tripId/places/:placeId/confirm'],
+  fixPlace: ['POST', '/api/trips/:tripId/places/:placeId/fix'],
+  itinerary: ['GET', '/api/trips/:tripId/itinerary'],
+  generatePlan: ['POST', '/api/trips/:tripId/itinerary/generate'],
+  movePlace: ['PUT', '/api/trips/:tripId/places/:placeId/day'],
 });
 export function isDate(value) {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) &&

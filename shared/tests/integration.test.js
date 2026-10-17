@@ -5,15 +5,56 @@ import { demoSnapshot, lisbonSnapshot } from '../contracts/fixtures.js';
 import { generateItinerary } from '../utils/itinerary.js';
 import { buildGroupRecommendation, createRecommendationInput } from '../utils/recommendation.js';
 import { buildTripBoard } from '../utils/trip-board.js';
-import { toBoardingPassCard, toFrontendTripBoard } from '../utils/frontend-card.js';
+import { toBoardingPassCard, toFrontendItinerary, toFrontendReels, toFrontendTripBoard } from '../utils/frontend-card.js';
 import { adaptInstagramExtraction } from '../utils/instagram-import.js';
+import { distanceKm, hasCoordinates, orderByProximity } from '../utils/geo.js';
+import { applyTripEvent } from '../realtime/events.js';
 import * as sharedPackage from '../index.js';
 const demo = () => structuredClone(demoSnapshot);
 test('package root exposes the stable integration surface', () => {
- for (const name of ['adaptInstagramExtraction','buildGroupRecommendation','generateItinerary','buildTripBoard','toFrontendTripBoard','validateTrip'])
+ for (const name of ['adaptInstagramExtraction','buildGroupRecommendation','generateItinerary','buildTripBoard','toFrontendTripBoard','toFrontendItinerary','toFrontendReels','validateTrip','distanceKm','applyTripEvent'])
   assert.equal(typeof sharedPackage[name],'function');
  assert.equal(sharedPackage.lisbonSnapshot.trip.destination,'Lisbon');
  assert.equal(typeof sharedPackage.schemaSql,'string');
+ assert.deepEqual(sharedPackage.ROUTES.generatePlan,['POST','/api/trips/:tripId/itinerary/generate']);
+ assert.deepEqual(sharedPackage.ROUTES.react,['POST','/api/trips/:tripId/places/:placeId/reactions']);
+});
+test('measures geographic distance and orders nearby locations deterministically', () => {
+ const belem={id:'belem',latitude:38.6975,longitude:-9.2068};
+ const baixa={id:'baixa',latitude:38.7107,longitude:-9.1366};
+ const alfama={id:'alfama',latitude:38.7110,longitude:-9.1295};
+ assert.equal(distanceKm(belem,belem),0);
+ assert.ok(distanceKm(belem,baixa)>5 && distanceKm(belem,baixa)<8);
+ assert.equal(hasCoordinates({latitude:91,longitude:0}),false);
+ assert.throws(()=>distanceKm({latitude:91,longitude:0},baixa));
+ assert.deepEqual(orderByProximity([alfama,baixa],belem).map(place=>place.id),['baixa','alfama']);
+});
+test('clusters coordinate-aware itinerary stops while preserving day capacity', () => {
+ const input=demo();
+ input.places=[
+  {id:'a1',tripId:input.trip.id,name:'A1',matchStatus:'confirmed',area:'A',latitude:38.7107,longitude:-9.1366},
+  {id:'a2',tripId:input.trip.id,name:'A2',matchStatus:'confirmed',area:'A',latitude:38.7110,longitude:-9.1295},
+  {id:'b1',tripId:input.trip.id,name:'B1',matchStatus:'confirmed',area:'B',latitude:38.6975,longitude:-9.2068},
+  {id:'b2',tripId:input.trip.id,name:'B2',matchStatus:'confirmed',area:'B',latitude:38.6968,longitude:-9.2050},
+ ];
+ const result=generateItinerary({...input,maxClusterKm:3});
+ assert.equal(result.find(item=>item.placeId==='a1').date,input.trip.startDate);
+ assert.equal(result.find(item=>item.placeId==='a2').date,input.trip.startDate);
+ assert.equal(result.find(item=>item.placeId==='b1').date,input.trip.endDate);
+ assert.equal(result.find(item=>item.placeId==='b2').date,input.trip.endDate);
+ assert.match(result.find(item=>item.placeId==='a2').reason,/Grouped within/);
+ assert.throws(()=>generateItinerary({...input,maxClusterKm:0}));
+});
+test('applies realtime trip events immutably and rejects stale plan revisions', () => {
+ const input=demo(); const before=structuredClone(input);
+ const reaction={tripId:input.trip.id,placeId:'place-1',memberId:'c',value:'interested'};
+ const updated=applyTripEvent(input,{type:'reaction.upserted',tripId:input.trip.id,record:reaction});
+ assert.deepEqual(input,before); assert.equal(updated.reactions.at(-1).memberId,'c');
+ assert.equal(applyTripEvent(updated,{type:'assignments.replaced',tripId:input.trip.id,assignments:[],planRevision:0}),updated);
+ const planned=applyTripEvent(updated,{type:'assignments.replaced',tripId:input.trip.id,assignments:[],planRevision:1});
+ assert.equal(planned.planRevision,1); assert.deepEqual(planned.assignments,[]);
+ assert.throws(()=>applyTripEvent(input,{type:'concern.deleted',tripId:'another-trip',id:'concern-1'}));
+ assert.throws(()=>applyTripEvent(input,{type:'reaction.upserted',tripId:input.trip.id,record:{placeId:'place-1',memberId:'c',value:'interested'}}));
 });
 test('normalizes duplicate Reel links and rejects unsafe or unrelated URLs', () => {
  assert.equal(normalizeReelUrl('https://instagram.com/reel/Ab_1/?igsh=abc'), 'https://www.instagram.com/reel/Ab_1/');
@@ -154,10 +195,23 @@ test('Lisbon fixture flows from member evaluations to frontend boarding passes',
  assert.equal(frontend.ideas[0].boardingPass.label,'needs_info');
 });
 test('frontend adapter uses safe fallbacks for a manual place without a Reel', () => {
- const card={placeId:'manual',name:'Manual idea',area:null,sourceReel:null,brief:null,practical:{},verdict:'needs_more_information',headline:'More information needed',text:'Still researching.'};
+ const card={placeId:'manual',name:'Manual idea',matchStatus:'uncertain',area:null,sourceReel:null,brief:null,practical:{},verdict:'needs_more_information',headline:'More information needed',text:'Still researching.'};
  const result=toBoardingPassCard({card,members:[]});
  assert.equal(result.location,'Location unknown'); assert.equal(result.cost,'Cost unknown');
  assert.equal(result.reelUrl,''); assert.equal(result.thumbnailUrl,null); assert.equal(result.label,'needs_info');
+});
+test('adapts shared boards to the exact numeric-day frontend contract', () => {
+ const input=demo(); input.assignments=generateItinerary(input);
+ const board=buildTripBoard(input);
+ const context={members:input.members,reactions:input.reactions,concerns:input.concerns,currentMemberId:'a'};
+ const itinerary=toFrontendItinerary(board,context);
+ assert.equal(itinerary.generated,true); assert.deepEqual(itinerary.days.map(day=>day.day),[1,2]);
+ assert.equal(itinerary.places.length,1); assert.equal(itinerary.places[0].id,'place-1');
+ assert.equal(itinerary.places[0].day,1); assert.equal(itinerary.places[0].status,'ready');
+ assert.deepEqual(Object.keys(itinerary.places[0]),['id','name','summary','location','cost','caveats','label','reason','contributors','reelUrl','counts','mine','status','day']);
+ const reels=toFrontendReels({imports:input.imports,importPlaces:input.importPlaces,board},context);
+ assert.equal(reels[0].status,'ready'); assert.equal(reels[0].places.length,2);
+ assert.equal(reels[0].places[1].status,'needs_confirmation');
 });
 test('adapts backend Instagram candidates into uncertain shared records', () => {
  const result={
