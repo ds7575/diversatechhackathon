@@ -26,6 +26,7 @@ export type CreateGroupInput = {
 };
 
 export type ReelStatus = "processing" | "ready" | "failed";
+export type TimeBlock = "morning" | "afternoon" | "evening";
 export type RecLabel = "strong" | "discuss" | "needs_info";
 export type ReactionKind = "interested" | "pass" | "price" | "distance" | "effort";
 
@@ -44,6 +45,10 @@ export type Place = {
   mine: ReactionKind | null;
   status: "ready" | "needs_confirmation";
   day: number | null;
+  // optional suggested timing; null/undefined = no time
+  time_block?: TimeBlock | null;
+  start_time?: string | null; // "HH:MM"
+  duration_min?: number | null;
 };
 
 export type Reel = {

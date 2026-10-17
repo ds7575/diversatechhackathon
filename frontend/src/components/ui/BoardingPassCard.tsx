@@ -64,10 +64,7 @@ export function BoardingPassCard(p: BoardingPassProps) {
           )}
         </div>
 
-        <div aria-hidden className="relative w-0 border-l-2 border-dashed border-ink">
-          <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full border-2 border-ink bg-paper" />
-          <span className="absolute -bottom-3 -left-3 h-6 w-6 rounded-full border-2 border-ink bg-paper" />
-        </div>
+        <div aria-hidden className="w-0 border-l-2 border-dashed border-ink/30" />
 
         <div className="flex w-32 shrink-0 flex-col gap-1 p-2">
           {BUTTONS.map(({ kind, text }) => {

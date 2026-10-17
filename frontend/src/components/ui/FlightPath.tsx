@@ -5,11 +5,13 @@ export function FlightPath({
   day,
   leg,
   explanation,
+  hideLine = false,
   children,
 }: {
   day: number;
   leg: string;
   explanation?: string;
+  hideLine?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -20,10 +22,12 @@ export function FlightPath({
         </h3>
         {explanation && <p className="mt-1 text-sm text-ink-soft">{explanation}</p>}
       </header>
-      <span
-        aria-hidden
-        className="absolute bottom-0 left-4 top-2 border-l-2 border-dotted border-airmail-blue"
-      />
+      {!hideLine && (
+        <span
+          aria-hidden
+          className="absolute bottom-0 left-4 top-2 border-l-2 border-dotted border-airmail-blue"
+        />
+      )}
       <span
         aria-hidden
         className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-airmail-blue text-white"

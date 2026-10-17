@@ -7,55 +7,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FlightPath } from "@/components/ui/FlightPath";
 import { api } from "@/lib/api";
 import { TripHeader } from "@/components/TripHeader";
-import type { Group, Itinerary, Place } from "@/lib/types";
+import { DayTimeline, PlaceMenu } from "@/components/DayTimeline";
+import type { Group, Itinerary, TimeBlock } from "@/lib/types";
 
 const LEGS = "ABCDEFGHIJ";
-
-function PlanRow({
-  place,
-  days,
-  onMoveDay,
-  onRemove,
-}: {
-  place: Place;
-  days: number[];
-  onMoveDay: (placeId: string, day: number | null) => void;
-  onRemove?: (placeId: string) => void;
-}) {
-  return (
-    <article className="border-2 border-ink bg-card p-3">
-      <h4 className="break-words font-heading text-xl font-extrabold leading-tight">{place.name}</h4>
-      <p className="label-mono mt-1 text-[11px] text-ink-soft">{place.location}</p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <label className="label-mono text-[11px] font-bold">
-          <span className="sr-only">Move {place.name} to day</span>
-          <select
-            value={place.day ?? ""}
-            onChange={(e) => onMoveDay(place.id, e.target.value ? Number(e.target.value) : null)}
-            className="min-h-11 border-2 border-ink bg-paper px-2 text-sm normal-case tracking-normal"
-          >
-            <option value="">Move to day…</option>
-            {days.map((d) => (
-              <option key={d} value={d}>
-                Day {String(d).padStart(2, "0")}
-              </option>
-            ))}
-          </select>
-        </label>
-        {onRemove && (
-          <button
-            type="button"
-            onClick={() => onRemove(place.id)}
-            aria-label={`Remove ${place.name} from plan`}
-            className="label-mono min-h-11 border-2 border-ink bg-card px-3 text-[11px] font-bold"
-          >
-            Remove from plan
-          </button>
-        )}
-      </div>
-    </article>
-  );
-}
 
 export default function ItineraryPage() {
   const { id } = useParams<{ id: string }>();
@@ -91,6 +46,7 @@ export default function ItineraryPage() {
   const dayNums = plan?.days.map((d) => d.day) ?? [];
   const standby = plan?.places.filter((p) => p.day === null) ?? [];
   const move = (pid: string, day: number | null) => act(() => api.moveToDay(id, pid, day));
+  const moveBlock = (pid: string, block: TimeBlock) => act(() => api.moveToBlock(id, pid, block));
   const remove = (pid: string) => act(() => api.removeFromPlan(id, pid));
 
   return (
@@ -122,15 +78,14 @@ export default function ItineraryPage() {
           )}
           <div className="mt-6 flex flex-col">
             {plan.days.map((d, i) => (
-              <FlightPath key={d.day} day={d.day} leg={LEGS[i] ?? String(i + 1)} explanation={d.explanation}>
-                {plan.places
-                  .filter((p) => p.day === d.day)
-                  .map((p) => (
-                    <PlanRow key={p.id} place={p} days={dayNums} onMoveDay={move} onRemove={remove} />
-                  ))}
-                {!plan.places.some((p) => p.day === d.day) && (
-                  <p className="text-sm text-ink-soft">Nothing here yet. Downtime.</p>
-                )}
+              <FlightPath key={d.day} day={d.day} leg={LEGS[i] ?? String(i + 1)} explanation={d.explanation} hideLine>
+                <DayTimeline
+                  places={plan.places.filter((p) => p.day === d.day)}
+                  days={dayNums}
+                  onMoveDay={move}
+                  onMoveBlock={moveBlock}
+                  onRemove={remove}
+                />
               </FlightPath>
             ))}
           </div>
@@ -142,7 +97,13 @@ export default function ItineraryPage() {
             <p className="mt-1 text-sm text-ink-soft">Saved ideas not in the plan yet.</p>
             <div className="mt-3 flex flex-col gap-3">
               {standby.map((p) => (
-                <PlanRow key={p.id} place={p} days={dayNums} onMoveDay={move} />
+                <article key={p.id} className="flex items-start gap-2 border-2 border-ink bg-card p-3">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="break-words font-heading text-lg font-extrabold leading-tight">{p.name}</h4>
+                    <p className="label-mono mt-1 text-[11px] text-ink-soft">{p.location}</p>
+                  </div>
+                  <PlaceMenu place={p} days={dayNums} onMoveDay={move} onMoveBlock={moveBlock} />
+                </article>
               ))}
             </div>
           </section>

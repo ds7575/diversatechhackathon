@@ -3,8 +3,10 @@ import type {
   CreateGroupInput,
   Group,
   Itinerary,
+  Place,
   NewMember,
   ReactionKind,
+  TimeBlock,
   Reel,
   TripPrefs,
 } from "./types";
@@ -21,6 +23,17 @@ const reelStore: Record<string, Reel[]> = structuredClone(mockReels);
 const prefStore: Record<string, TripPrefs> = {};
 const planStore: Record<string, { generated: boolean; days: Itinerary["days"] }> = {};
 const DAYS = 3;
+const BLOCK_ORDER: TimeBlock[] = ["morning", "afternoon", "evening"];
+const BLOCK_DEFAULTS: Record<TimeBlock, { start: string; min: number }> = {
+  morning: { start: "10:00", min: 90 },
+  afternoon: { start: "14:00", min: 120 },
+  evening: { start: "19:00", min: 90 },
+};
+const applyBlock = (p: Place, block: TimeBlock) => {
+  p.time_block = block;
+  p.start_time = BLOCK_DEFAULTS[block].start;
+  p.duration_min = p.duration_min ?? BLOCK_DEFAULTS[block].min;
+};
 const reelsOf = (gid: string) => (reelStore[gid] ??= []);
 const withReelCount = (g: Group): Group => ({ ...g, reel_count: reelsOf(g.id).length });
 const allPlaces = (gid: string) => reelsOf(gid).flatMap((r) => r.places);
@@ -216,7 +229,15 @@ export const api = {
       const days = Math.min(DAYS, Math.ceil(ready.length / 2));
       ready.forEach((p, i) => {
         p.day = i < days * 2 ? (i % days) + 1 : null;
+        p.time_block = null;
+        p.start_time = null;
+        p.duration_min = null;
       });
+      for (let d = 1; d <= days; d++) {
+        ready
+          .filter((p) => p.day === d)
+          .forEach((p, i) => applyBlock(p, BLOCK_ORDER[Math.min(i, 2)]));
+      }
       planStore[groupId] = {
         generated: true,
         days: Array.from({ length: days }, (_, i) => ({
@@ -239,12 +260,29 @@ export const api = {
 
   async moveToDay(groupId: string, placeId: string, day: number | null): Promise<void> {
     if (USE_MOCK) {
-      findPlace(groupId, placeId).day = day;
+      const p = findPlace(groupId, placeId);
+      p.day = day;
+      if (day === null) {
+        p.time_block = null;
+        p.start_time = null;
+        p.duration_min = null;
+      }
       return;
     }
     await http(`/api/trips/${groupId}/places/${placeId}/day`, {
       method: "PUT",
       body: JSON.stringify({ day }),
+    });
+  },
+
+  async moveToBlock(groupId: string, placeId: string, block: TimeBlock): Promise<void> {
+    if (USE_MOCK) {
+      applyBlock(findPlace(groupId, placeId), block);
+      return;
+    }
+    await http(`/api/trips/${groupId}/places/${placeId}/block`, {
+      method: "PUT",
+      body: JSON.stringify({ time_block: block }),
     });
   },
 

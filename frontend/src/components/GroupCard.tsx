@@ -27,10 +27,7 @@ export function GroupCard({ group }: { group: Group }) {
           <p className="mt-1 text-sm text-ink-soft">{group.destination}</p>
           <p className="label-mono mt-3 text-xs font-bold">{dates}</p>
         </div>
-        <div aria-hidden className="relative w-0 border-l-2 border-dashed border-ink">
-          <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full border-2 border-ink bg-paper" />
-          <span className="absolute -bottom-3 -left-3 h-6 w-6 rounded-full border-2 border-ink bg-paper" />
-        </div>
+        <div aria-hidden className="w-0 border-l-2 border-dashed border-ink/30" />
         <div className="flex w-32 shrink-0 flex-col justify-between gap-3 p-3">
           <div className="flex flex-wrap gap-1">
             {shown.map((m, i) => (

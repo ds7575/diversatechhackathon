@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="App logo">
+  <rect width="64" height="64" rx="16" fill="#EBE8FC"/>
+  <path d="M11 53 C 17 44, 22 40, 29 37" fill="none" stroke="#A79DE0" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.1 5.2"/>
+  <g transform="translate(39 25) rotate(45)">
+    <path fill="#5B4FA0" d="M0 -15 C1.7 -15 2.2 -13 2.2 -11 L2.2 -3.5 L14 3.5 L14 6.8 L2.2 2.8 L2.2 9.2 L6.4 12.2 L6.4 14.6 L0 12.8 L-6.4 14.6 L-6.4 12.2 L-2.2 9.2 L-2.2 2.8 L-14 6.8 L-14 3.5 L-2.2 -3.5 L-2.2 -11 C-2.2 -13 -1.7 -15 0 -15 Z"/>
+  </g>
+</svg>
