@@ -6,9 +6,11 @@ export const schemaSql = `
 PRAGMA foreign_keys = ON;
 CREATE TABLE trips (
  id TEXT PRIMARY KEY, name TEXT NOT NULL, destination TEXT NOT NULL,
- start_date TEXT NOT NULL, end_date TEXT NOT NULL CHECK(end_date >= start_date),
+ start_date TEXT, end_date TEXT,
  base_area TEXT, transport TEXT, budget TEXT, preferences_json TEXT NOT NULL DEFAULT '{}',
- plan_revision INTEGER NOT NULL DEFAULT 0 CHECK(plan_revision >= 0), created_at TEXT NOT NULL
+ plan_revision INTEGER NOT NULL DEFAULT 0 CHECK(plan_revision >= 0), created_at TEXT NOT NULL,
+ CHECK((start_date IS NULL AND end_date IS NULL) OR
+  (start_date IS NOT NULL AND end_date IS NOT NULL AND end_date >= start_date))
 );
 CREATE TABLE members (
  id TEXT PRIMARY KEY, trip_id TEXT NOT NULL REFERENCES trips(id),
@@ -82,6 +84,11 @@ CREATE TABLE day_assignments (
  trip_id TEXT NOT NULL, place_id TEXT PRIMARY KEY, date TEXT, position INTEGER NOT NULL CHECK(position >= 0),
  manual INTEGER NOT NULL CHECK(manual IN (0,1)), reason TEXT NOT NULL,
  FOREIGN KEY(trip_id, place_id) REFERENCES places(trip_id, id)
+);
+CREATE TABLE provider_spend (
+ id TEXT PRIMARY KEY, provider TEXT NOT NULL, endpoint TEXT NOT NULL,
+ cost_usd REAL NOT NULL CHECK(cost_usd >= 0), idempotency_key TEXT, created_at TEXT NOT NULL,
+ UNIQUE(provider, idempotency_key)
 );
 CREATE UNIQUE INDEX assignment_slot ON day_assignments(trip_id, ifnull(date, ''), position);
 `;

@@ -1,6 +1,6 @@
-# Group Travel Planner
+# Travel Sync
 
-Group Travel Planner turns public Instagram Reels into researched trip ideas that a group can discuss and organize into an editable itinerary.
+Travel Sync turns public Instagram Reels into researched trip ideas that a group can discuss and organize into an editable itinerary.
 
 Instead of treating a Reel as a bookmark, the application extracts explicitly named places, keeps the original Reel as evidence, evaluates each place against every member's preferences, and explains why it may or may not fit the group. Members can react, flag price/distance/effort concerns, and generate a loose day-by-day plan without losing unassigned ideas.
 
@@ -30,7 +30,9 @@ flowchart LR
     W --> P[Place-search provider]
     W --> M[Recommendation model]
     W --> S[Shared contracts and adapters]
-    S --> I[Itinerary synthesizer]
+    S --> D[Place deduplication]
+    D --> M
+    S --> I[Travel-time-aware itinerary synthesizer]
     A -. planned persistence .-> DB[(Supabase Postgres)]
     DB -. planned live updates .-> F
 ```
@@ -70,22 +72,24 @@ The remaining API routes—members, preferences, reactions, confirmation, itiner
 
 - `contracts/`: stable enums, route definitions, validators, and fixtures
 - `utils/instagram-import.js`: maps extraction output into imports, places, links, and evidence
+- `utils/place-deduplication.js`: merges duplicate place candidates while preserving Reel contributors and evidence
 - `utils/recommendation.js`: validates per-member evaluations and generates concise group copy
-- `utils/itinerary.js`: deterministic planning with votes, firm exclusions, capacity, geographic grouping, and preserved manual edits
+- `utils/itinerary.js`: deterministic planning with votes, firm exclusions, capacity, travel-time grouping, and preserved manual edits
+- `utils/travel-time.js`: validates provider-neutral walking, transit, and driving route matrices
 - `utils/geo.js`: Haversine distance and nearest-neighbor ordering
 - `utils/trip-board.js`: Pinterest-style trip board read model
 - `utils/frontend-card.js`: exact frontend `Place`, `Reel`, and `Itinerary` adapters
 - `realtime/events.js`: immutable collaboration-event reducer with stale-revision protection
 - `database/schema.js`: SQLite schema used by backend integration tests
-- `database/supabase.sql`: proposed Postgres schema, RLS policies, and Realtime publication
+- `database/supabase.sql`: deployable Postgres schema, RLS policies, Realtime publication, and provider-spend ledger
 
 The planner treats ordinary budget, distance, and effort conflicts as tradeoffs. Only explicit firm limits can block a recommendation. Uncertain places stay out of automatic plans until confirmed.
 
 ### Persistence
 
-The intended deployed store is Supabase Postgres with Realtime. The proposed schema includes trips, members, imports, Reel contributors, places, evidence, recommendations, member evaluations, reactions, concerns, and day assignments. Row-level security restricts reads to authenticated trip members; server-side writes are expected to use protected backend credentials.
+The intended deployed store is Supabase Postgres with Realtime. The shared schema includes trips, members, imports, Reel contributors, places, evidence, recommendations, member evaluations, reactions, concerns, day assignments, and a protected provider-spend ledger. Row-level security restricts reads to authenticated trip members; server-side writes are expected to use protected backend credentials. Trips can be saved as drafts before dates are selected, while database checks prevent partially entered or reversed date ranges.
 
-Supabase is **not deployed from this repository yet**. `shared/database/supabase.sql` is the reviewed proposal, while `supabase/schema.sql` is currently empty. The connected live route uses an in-memory trip store, and the worker integration tests use SQLite. Consequently, live imports currently disappear after a server restart and do not synchronize across devices.
+Supabase is **not deployed from this repository yet**. [`shared/database/SUPABASE_DEPLOYMENT.md`](shared/database/SUPABASE_DEPLOYMENT.md) contains the handoff procedure, `shared/database/supabase.sql` contains the schema, and `shared/database/supabase.verify.sql` verifies tables, RLS, and Realtime after deployment. The connected live route still uses an in-memory trip store, and worker integration tests use SQLite. Consequently, live imports currently disappear after a server restart and do not synchronize across devices.
 
 ## How Glasser is used
 
@@ -183,13 +187,15 @@ The shared planner currently:
 - Includes only confirmed places in automatic day assignments
 - Ranks places using group reactions
 - Excludes only explicit firm-limit violations
-- Groups stops by coordinates when available and area otherwise
+- Uses supplied travel times for walking, transit, or driving when available
+- Falls back to coordinate distance and then matching area when route data is unavailable
+- Starts another available day when the nearest route exceeds the configured travel threshold
 - Respects maximum stops per day
 - Preserves manual moves and removals
 - Leaves overflow and unresolved ideas unassigned
 - Produces a short reason for every assignment
 
-Coordinate grouping uses straight-line Haversine distance, not live travel duration. The planner is provider-neutral so a future server-side Google Routes matrix can supply travel minutes without exposing a Google API key to the browser.
+The planner is provider-neutral: Person 2 can later supply a server-side Google Routes matrix without changing the recommendation or itinerary contract and without exposing a Google API key to the browser. Until that connection exists, planning continues deterministically using coordinates or area labels.
 
 ## Repository layout
 
@@ -280,13 +286,15 @@ Most backend tests use fixtures or injected providers and do not purchase data. 
 | Caption-first Glasser extraction | Implemented |
 | Extraction cache, idempotency, spend checks | Implemented |
 | Place-search orchestration and SQLite persistence | Implemented and tested as reusable services |
-| Shared recommendation and itinerary logic | Implemented; integration refinement continues |
+| Per-member recommendation and tradeoff logic | Implemented and tested |
+| Evidence-preserving place deduplication | Implemented and tested |
+| Travel-time-aware itinerary logic | Implemented and tested; routing provider not connected |
 | Live trip and Reel read/import routes | Partially implemented |
 | Live members, preferences, reactions, and itinerary routes | Not connected |
 | Supabase deployment and authentication | Not connected |
 | Supabase Realtime synchronization | Not connected |
 | Reel thumbnail Pinterest presentation | Planned |
-| Google travel-time routing | Planned; current planner uses geographic proximity |
+| Google travel-time routing | Shared contract ready; backend provider connection pending |
 
 The prototype should not yet be presented as persistent, authenticated, or real-time. The complete mock experience is available for UI demonstrations, while the live integration currently proves the caption-to-candidate portion of the pipeline.
 

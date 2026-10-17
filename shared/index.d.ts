@@ -100,6 +100,15 @@ export interface Assignment {
 
 export interface GeoPoint { latitude: number; longitude: number; id?: string }
 
+export type TravelMode = 'walk' | 'transit' | 'car';
+export interface TravelTime {
+  originPlaceId: string;
+  destinationPlaceId: string;
+  minutes: number;
+  distanceKm?: number | null;
+  mode: TravelMode;
+}
+
 export type TripEvent =
   | { type: 'import.upserted'; tripId: string; record: InstagramImport }
   | { type: 'place.upserted'; tripId: string; record: Place }
@@ -249,6 +258,7 @@ export const ACTIVITY_LEVELS: readonly ActivityLevel[];
 export const CROWD_PREFERENCES: readonly CrowdPreference[];
 export const ROUTES: Readonly<Record<string, readonly [string, string]>>;
 export const TRIP_EVENT_TYPES: readonly TripEvent['type'][];
+export const TRAVEL_MODES: readonly TravelMode[];
 
 export function isDate(value: unknown): value is string;
 export function normalizeInstagramUrl(value: string): string;
@@ -267,10 +277,14 @@ export function createRecommendationInput(input: { place: Place; members: Member
   evidence: Array<Pick<Evidence, 'facts' | 'sourceUrl' | 'retrievedAt'>>;
 };
 export function buildGroupRecommendation(input: { place: Place; members: Member[]; evaluations: MemberEvaluation[]; evidenceStatus?: EvidenceStatus }): Recommendation;
-export function generateItinerary(input: { trip: Trip; places: Place[]; reactions?: Reaction[]; assignments?: Assignment[]; excludedPlaceIds?: string[]; replaceManual?: boolean; maxPerDay?: number; maxClusterKm?: number }): Assignment[];
+export function generateItinerary(input: { trip: Trip; places: Place[]; reactions?: Reaction[]; assignments?: Assignment[]; excludedPlaceIds?: string[]; replaceManual?: boolean; maxPerDay?: number; maxClusterKm?: number; travelTimes?: TravelTime[]; travelMode?: TravelMode | null; maxTravelMinutes?: number }): Assignment[];
 export function hasCoordinates(place: Partial<GeoPoint> | null | undefined): place is GeoPoint;
 export function distanceKm(a: GeoPoint, b: GeoPoint): number;
 export function orderByProximity<T extends Partial<GeoPoint> & { id: string }>(places: T[], start?: Partial<GeoPoint> | null): T[];
+export function validateTravelTimes<T extends TravelTime[]>(routes: T, placeIds?: string[] | null): T;
+export function createTravelTimeLookup(routes: TravelTime[], options?: { mode?: TravelMode | null }): { get(originPlaceId: string, destinationPlaceId: string): TravelTime | null };
+export function orderByTravelTime<T extends { id: string }>(places: T[], travelTimes: TravelTime[], options?: { startPlaceId?: string | null; mode?: TravelMode | null }): T[];
+export function deduplicatePlaceRecords(input: { places: Place[]; importPlaces?: ImportPlace[]; evidence?: Evidence[] }, options?: { maxDistanceKm?: number }): { places: Place[]; importPlaces: ImportPlace[]; evidence: Evidence[]; aliases: Record<string, string> };
 export function validateTripEvent<T extends TripEvent>(event: T): T;
 export function applyTripEvent(snapshot: TripSnapshot, event: TripEvent): TripSnapshot;
 export function buildTripBoard(snapshot: Pick<TripSnapshot, 'trip' | 'places'> & Partial<Pick<TripSnapshot, 'imports' | 'importPlaces' | 'recommendations' | 'assignments'>>): TripBoard;

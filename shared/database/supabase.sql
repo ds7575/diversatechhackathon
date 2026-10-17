@@ -6,15 +6,17 @@ create table if not exists public.trips (
   id text primary key,
   name text not null,
   destination text not null,
-  start_date date not null,
-  end_date date not null check (end_date >= start_date),
+  start_date date,
+  end_date date,
   base_area text,
   transport text,
   budget text,
   preferences jsonb not null default '{}'::jsonb,
   plan_revision integer not null default 0 check (plan_revision >= 0),
   created_by uuid not null references auth.users(id),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  check ((start_date is null and end_date is null) or
+    (start_date is not null and end_date is not null and end_date >= start_date))
 );
 
 create table if not exists public.members (
@@ -149,11 +151,22 @@ create table if not exists public.day_assignments (
   foreign key (trip_id, place_id) references public.places(trip_id, id) on delete cascade
 );
 
+create table if not exists public.provider_spend (
+  id text primary key,
+  provider text not null,
+  endpoint text not null,
+  cost_usd numeric(12,6) not null check (cost_usd >= 0),
+  idempotency_key text,
+  created_at timestamptz not null default now(),
+  unique (provider, idempotency_key)
+);
+
 create unique index if not exists assignment_slot
   on public.day_assignments (trip_id, coalesce(date, '-infinity'::date), position);
 create index if not exists members_subject on public.members(subject_id, trip_id);
 create index if not exists places_trip on public.places(trip_id);
 create index if not exists imports_trip on public.imports(trip_id);
+create index if not exists provider_spend_created on public.provider_spend(created_at);
 
 -- SECURITY DEFINER avoids recursive members policies. Its fixed search_path is intentional.
 create or replace function public.is_trip_member(target_trip_id text)
@@ -185,11 +198,12 @@ alter table public.member_place_evaluations enable row level security;
 alter table public.reactions enable row level security;
 alter table public.concerns enable row level security;
 alter table public.day_assignments enable row level security;
+alter table public.provider_spend enable row level security;
 
 revoke all on public.trips, public.members, public.invites, public.imports,
   public.import_contributors, public.places, public.import_places, public.evidence,
   public.recommendations, public.member_place_evaluations, public.reactions,
-  public.concerns, public.day_assignments from anon, authenticated;
+  public.concerns, public.day_assignments, public.provider_spend from anon, authenticated;
 grant select on public.trips, public.members, public.imports,
   public.import_contributors, public.places, public.import_places, public.evidence,
   public.recommendations, public.member_place_evaluations, public.reactions,

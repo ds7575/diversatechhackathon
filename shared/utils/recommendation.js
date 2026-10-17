@@ -89,13 +89,14 @@ export function buildGroupRecommendation({ place, members, evaluations, evidence
 
   const blocked = normalized.filter(item => item.fit === 'blocked');
   const unknown = normalized.filter(item => item.fit === 'insufficient_information');
+  const hasTradeoff = normalized.some(item => item.conflicts.length > 0 || ['mixed', 'poor', 'insufficient_information'].includes(item.fit));
   const score = Math.round(normalized.reduce((sum, item) => sum + FIT_SCORES[item.fit], 0) / normalized.length);
   let verdict; let headline;
   if (place.matchStatus !== 'confirmed' || evidenceStatus === 'uncertain' || unknown.length === normalized.length) {
     verdict = 'needs_more_information'; headline = 'More information needed';
   } else if (blocked.length) {
     verdict = 'not_recommended'; headline = 'Conflicts with a firm limit';
-  } else if (score >= 85) {
+  } else if (score >= 85 && !hasTradeoff) {
     verdict = 'strong_match'; headline = 'Strong match for your group';
   } else if (score >= 65) {
     verdict = 'recommended'; headline = 'Recommended for your group';

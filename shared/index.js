@@ -4,6 +4,8 @@ export * from './utils/instagram-import.js';
 export * from './utils/recommendation.js';
 export * from './utils/itinerary.js';
 export * from './utils/geo.js';
+export * from './utils/travel-time.js';
+export * from './utils/place-deduplication.js';
 export * from './utils/trip-board.js';
 export * from './utils/frontend-card.js';
 export * from './realtime/events.js';

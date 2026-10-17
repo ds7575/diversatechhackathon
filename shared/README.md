@@ -24,12 +24,15 @@ import {
 - contracts/fixtures.js: synthetic mock snapshot for frontend hooks.
 - utils/itinerary.js: pure deterministic day grouping, coordinate/area affinity, interest ranking, capacity overflow and preserved manual edits.
 - utils/geo.js: provider-neutral straight-line distance and nearest-neighbor ordering. This is a planning heuristic, not Google travel time.
+- utils/travel-time.js: validates provider-neutral walk/transit/car route results and orders stops by travel minutes.
+- utils/place-deduplication.js: merges the same verified place across Reels while retaining every source link and evidence row.
 - utils/recommendation.js: prepares factual model input, validates per-member assessments, and produces concise group recommendation copy.
 - utils/trip-board.js: builds the frontend-ready trip overview, day columns, and unassigned idea cards for a Pinterest-style board.
 - utils/frontend-card.js: maps board cards, numeric-day itineraries, reactions, concerns, and Reel sources into Person 1's current `Place`, `Reel`, and `Itinerary` payloads.
 - utils/instagram-import.js: converts Person 2's caption-first Instagram extraction output into uncertain imports, places, links, and traceable evidence.
 - database/schema.js: SQLite-compatible schema exported as schemaSql; no service or migration runs automatically.
 - database/supabase.sql: proposed Postgres schema, member-read RLS policies, and Realtime publication setup. It has not been deployed.
+- database/supabase.verify.sql and SUPABASE_DEPLOYMENT.md: post-deployment checks and a credential-free handoff runbook.
 - realtime/events.js: immutable frontend event reducer with cross-trip and stale-plan protection.
 
 Run `cd shared && npm test` with Node 22+ (or `node --test shared/tests/*.test.js` from repo root). No install needed. SQLite verification uses Python's standard sqlite3 module via `python3 shared/tests/schema_test.py`.

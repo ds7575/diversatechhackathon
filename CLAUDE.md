@@ -1,4 +1,4 @@
-# Group Travel Planner: iPhone-first prototype (3-hour hackathon)
+# Travel Sync: iPhone-first prototype (3-hour hackathon)
 
 Friends share public Instagram Reels into a shared trip. The app extracts places, researches them, and creates place cards explaining group fit. Members react or flag concerns (price/distance/effort). The app proposes a loose day-by-day plan that everyone can edit.
 Differentiator: suggestion → researched place → group interest + concerns → explained day assignment. Reel import alone is NOT the pitch.
