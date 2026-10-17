@@ -288,15 +288,7 @@ Most backend tests use fixtures or injected providers and do not purchase data. 
 | Place-search orchestration and SQLite persistence | Implemented and tested as reusable services |
 | Per-member recommendation and tradeoff logic | Implemented and tested |
 | Evidence-preserving place deduplication | Implemented and tested |
-| Travel-time-aware itinerary logic | Implemented and tested; routing provider not connected |
-| Live trip and Reel read/import routes | Partially implemented |
-| Live members, preferences, reactions, and itinerary routes | Not connected |
-| Supabase deployment and authentication | Not connected |
-| Supabase Realtime synchronization | Not connected |
-| Reel thumbnail Pinterest presentation | Planned |
-| Google travel-time routing | Shared contract ready; backend provider connection pending |
 
-The prototype should not yet be presented as persistent, authenticated, or real-time. The complete mock experience is available for UI demonstrations, while the live integration currently proves the caption-to-candidate portion of the pipeline.
 
 ## Engineering principles
 
