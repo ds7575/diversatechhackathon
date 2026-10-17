@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PeopleInput } from "@/components/PeopleInput";
-import { AirmailStripe } from "@/components/ui/AirmailStripe";
 import { api } from "@/lib/api";
 import type { NewMember } from "@/lib/types";
 
@@ -37,7 +36,6 @@ export default function NewGroup() {
         Back
       </Link>
       <h1 className="font-heading text-[40px] font-extrabold leading-none tracking-tight">New trip</h1>
-      <AirmailStripe height={10} className="mt-4" />
       <form onSubmit={submit} className="mt-6 flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <label htmlFor="trip-name" className="label-mono text-xs font-bold">Trip name</label>

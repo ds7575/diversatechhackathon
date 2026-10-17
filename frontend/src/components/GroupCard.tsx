@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Group } from "@/lib/types";
-import { AirmailStripe } from "./ui/AirmailStripe";
 import { Sticker } from "./ui/Sticker";
 
 const fmt = (d: string) =>
@@ -20,7 +19,6 @@ export function GroupCard({ group }: { group: Group }) {
       className="lift relative block border-2 border-ink bg-card"
       aria-label={`${group.name}, ${group.destination}, ${dates}, ${group.members.length} members, ${group.reel_count} Reels`}
     >
-      <AirmailStripe height={6} />
       <div className="flex">
         <div className="min-w-0 flex-1 p-4">
           <h2 className="break-words font-heading text-2xl font-extrabold leading-tight tracking-tight">

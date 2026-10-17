@@ -89,7 +89,7 @@ Playful, student-friendly travel theme. Bright and tactile, never corporate or d
 - `--ink` #14213D (navy text), `--ink-soft` #4A5578
 - `--airmail-red` #E63946 (primary actions, concerns), `--airmail-blue` #2B59C3 (links, Plan tab)
 - `--sun` #FFC93C (highlights, "Strong option"), `--mint` #3FB68B (Interested)
-- Airmail stripe (repeating red/blue diagonal) as an accent border only: header bottom, card tops. Not full backgrounds.
+- Airmail stripe (repeating red/blue diagonal): allowed only as a thin 4px accent on the top of boarding pass cards. Never in headers or full backgrounds.
 
 **Type (Google Fonts via next/font)**
 - Headings: Bricolage Grotesque 700–800, big and tight (trip name 40px+)
@@ -98,7 +98,7 @@ Playful, student-friendly travel theme. Bright and tactile, never corporate or d
 - Handwritten notes on concerns: Caveat
 
 **Signature components**
-- Trip header = postcard: huge destination name, dates as "DEPART / RETURN" in mono, member avatars as round initials stickers, airmail stripe underneath.
+- Trip header = postcard: huge destination name, dates as "DEPART / RETURN" in mono, member avatars as round initials stickers, and a thin flight route line (dotted `--ink-soft` line with a small plane partway along it, mono HOME / destination labels at each end; plane glides in <600ms on load, none under reduced motion). Header is a white card, 1px `--ink` at 10% border, 16px radius, 24px padding, 32px gap before content. No stripe.
 - Place card = boarding pass: perforated dashed divider with notched circles; left "ticket" has name, summary, cost, caveats; right "stub" has the reaction buttons and contributor. Reel link as "View original ✈".
 - Recommendation label = rotated passport stamp (dashed border, -6deg): STRONG OPTION (sun), WORTH DISCUSSING (blue), NEEDS INFO (ink-soft).
 - Concerns = luggage-tag chips (tag shape with hole) and the note in Caveat.

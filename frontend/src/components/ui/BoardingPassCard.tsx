@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AirmailStripe } from "./AirmailStripe";
+import { LuggageTag } from "./LuggageTag";
 import { PassportStamp, type RecLabel } from "./PassportStamp";
 
 export type ReactionKind = "interested" | "pass" | "price" | "distance" | "effort";
@@ -34,7 +35,7 @@ export function BoardingPassCard(p: BoardingPassProps) {
 
   return (
     <article className="lift relative border-2 border-ink bg-card">
-      <AirmailStripe height={6} />
+      <AirmailStripe height={4} />
       <div className="flex">
         <div className="min-w-0 flex-1 p-4">
           <h3 className="break-words font-heading text-2xl font-extrabold leading-tight tracking-tight">
@@ -52,6 +53,15 @@ export function BoardingPassCard(p: BoardingPassProps) {
             <PassportStamp label={p.label} />
             <p className="text-sm">{p.reason}</p>
           </div>
+          {(["price", "distance", "effort"] as const).some((k) => (p.counts[k] ?? 0) > 0) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(["price", "distance", "effort"] as const)
+                .filter((k) => (p.counts[k] ?? 0) > 0)
+                .map((k) => (
+                  <LuggageTag key={k} kind={k} count={p.counts[k]} />
+                ))}
+            </div>
+          )}
         </div>
 
         <div aria-hidden className="relative w-0 border-l-2 border-dashed border-ink">

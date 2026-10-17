@@ -78,3 +78,13 @@ body {
   }
   .plane-fly { offset-distance: 100%; }
 }
+
+.plane-taxi { animation: taxi 1.2s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) {
+  .plane-taxi { animation: none; }
+}
+
+@keyframes glide {
+  from { left: 0; }
+}
+.plane-glide { animation: glide 0.5s ease-out both; }

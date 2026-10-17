@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GroupCard } from "@/components/GroupCard";
-import { AirmailStripe } from "@/components/ui/AirmailStripe";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { api } from "@/lib/api";
 import type { Group } from "@/lib/types";
@@ -18,9 +17,10 @@ export default function Home() {
 
   return (
     <main className="mx-auto w-full max-w-[480px] px-4 pb-28 pt-8">
-      <h1 className="font-heading text-[44px] font-extrabold leading-none tracking-tight">My Trips</h1>
-      <AirmailStripe height={10} className="mt-4" />
-      <div className="mt-6 flex flex-col gap-4">
+      <header className="mb-8 rounded-2xl border border-ink/10 bg-card p-6">
+        <h1 className="font-heading text-[44px] font-extrabold leading-none tracking-tight">My Trips</h1>
+      </header>
+      <div className="flex flex-col gap-4">
         {error && <p role="alert" className="font-bold text-airmail-red">Couldn&apos;t load trips.</p>}
         {!error && groups === null && <p className="label-mono text-xs">Loading…</p>}
         {groups?.length === 0 && <EmptyState message="No trips yet, start one with friends." />}

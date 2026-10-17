@@ -24,3 +24,53 @@ export type CreateGroupInput = {
   destination: string;
   members: NewMember[];
 };
+
+export type ReelStatus = "processing" | "ready" | "failed";
+export type RecLabel = "strong" | "discuss" | "needs_info";
+export type ReactionKind = "interested" | "pass" | "price" | "distance" | "effort";
+
+export type Place = {
+  id: string;
+  name: string;
+  summary: string;
+  location: string;
+  cost: string;
+  caveats: string[];
+  label: RecLabel;
+  reason: string;
+  contributors: string[];
+  reelUrl: string;
+  counts: Partial<Record<ReactionKind, number>>;
+  mine: ReactionKind | null;
+  status: "ready" | "needs_confirmation";
+  day: number | null;
+};
+
+export type Reel = {
+  id: string;
+  url: string;
+  status: ReelStatus;
+  places: Place[];
+};
+
+export type Transport = "walk" | "transit" | "car";
+export type Pace = "chill" | "balanced" | "packed";
+
+export type TripPrefs = {
+  base: string;
+  start_date: string | null;
+  end_date: string | null;
+  transport: Transport;
+  budget_pp: string;
+  pace: Pace;
+  interests: string[];
+  notes: string;
+};
+
+export type ItineraryDay = { day: number; explanation: string };
+
+export type Itinerary = {
+  generated: boolean;
+  days: ItineraryDay[];
+  places: Place[]; // confirmed places; day === null means Standby
+};
