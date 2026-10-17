@@ -1,69 +1,92 @@
-import Image from "next/image";
+"use client";
+
+import { AirmailStripe } from "@/components/ui/AirmailStripe";
+import { BoardingPassCard } from "@/components/ui/BoardingPassCard";
+import { FlightPath } from "@/components/ui/FlightPath";
+import { LuggageTag } from "@/components/ui/LuggageTag";
+import { PassportStamp } from "@/components/ui/PassportStamp";
+import { PlaneLoader } from "@/components/ui/PlaneLoader";
+
+const place = {
+  name: "Time Out Market Lisboa",
+  summary: "Food hall with stalls from a range of local chefs.",
+  location: "Cais do Sodré",
+  cost: "EUR 20 pp",
+  caveats: ["Busy at peak meal times"],
+  label: "strong" as const,
+  reason: "Matches food interest; mid budget; short walk from base area.",
+  contributors: ["Maya", "Dev"],
+  reelUrl: "https://instagram.com/reel/example",
+  counts: { interested: 2, price: 1 },
+};
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-8">
+      <h2 className="label-mono mb-3 text-xs font-bold text-ink-soft">{title}</h2>
+      {children}
+    </section>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="mx-auto w-full max-w-[480px] px-4 pb-16 pt-8">
+      <h1 className="font-heading text-[44px] font-extrabold leading-none tracking-tight">Lisbon</h1>
+      <p className="label-mono mt-2 text-xs">Depart 12 Jun · Return 15 Jun</p>
+      <AirmailStripe height={10} className="mt-4" />
+
+      <Section title="AirmailStripe">
+        <AirmailStripe height={12} />
+      </Section>
+
+      <Section title="PassportStamp">
+        <div className="flex flex-wrap gap-4 p-2">
+          <PassportStamp label="strong" />
+          <PassportStamp label="discuss" />
+          <PassportStamp label="needs_info" />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </Section>
+
+      <Section title="LuggageTag">
+        <div className="flex flex-wrap items-start gap-4">
+          <LuggageTag kind="price" count={1} note="a bit steep for me" />
+          <LuggageTag kind="effort" count={2} note="lots of hills?" />
+          <LuggageTag kind="distance" />
         </div>
-      </main>
-    </div>
+      </Section>
+
+      <Section title="BoardingPassCard">
+        <div className="flex flex-col gap-4">
+          <BoardingPassCard {...place} mine="interested" onReact={() => {}} />
+          <BoardingPassCard
+            {...place}
+            name="Miradouro da Senhora do Monte and the Whole Alfama Viewpoint Walking Circuit"
+            cost="Cost unknown"
+            label="needs_info"
+            reason="Cost and hours not found."
+            caveats={["Steep climb", "No hours found"]}
+            contributors={["Sam"]}
+            counts={{ effort: 1 }}
+            onReact={() => {}}
+          />
+        </div>
+      </Section>
+
+      <Section title="FlightPath">
+        <FlightPath day={1} leg="A" explanation="Waterfront and food, all within walking range.">
+          <div className="border-2 border-ink bg-card p-3 text-sm">Time Out Market Lisboa</div>
+          <div className="border-2 border-ink bg-card p-3 text-sm">Pastéis de Belém</div>
+        </FlightPath>
+      </Section>
+
+      <Section title="PlaneLoader">
+        <div className="flex flex-col items-start gap-2">
+          <PlaneLoader status="processing" />
+          <PlaneLoader status="ready" />
+          <PlaneLoader status="failed" onRetry={() => {}} />
+        </div>
+      </Section>
+    </main>
   );
 }

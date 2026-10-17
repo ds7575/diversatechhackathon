@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #fff6e5;
+  --card: #ffffff;
+  --ink: #14213d;
+  --ink-soft: #4a5578;
+  --airmail-red: #e63946;
+  --airmail-blue: #2b59c3;
+  --sun: #ffc93c;
+  --mint: #3fb68b;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-airmail-red: var(--airmail-red);
+  --color-airmail-blue: var(--airmail-blue);
+  --color-sun: var(--sun);
+  --color-mint: var(--mint);
+  --font-heading: var(--font-bricolage);
+  --font-sans: var(--font-dm-sans);
+  --font-mono: var(--font-space-mono);
+  --font-hand: var(--font-caveat);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.label-mono {
+  font-family: var(--font-space-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.airmail-stripe {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--airmail-red) 0 12px,
+    var(--paper) 12px 20px,
+    var(--airmail-blue) 20px 32px,
+    var(--paper) 32px 40px
+  );
+}
+
+/* motion */
+@keyframes stamp-press {
+  0% { transform: scale(1.15) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes fly-arc {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+@keyframes taxi {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(100% + 1rem)); }
+}
+.stamp-press { animation: stamp-press 0.25s ease-out; }
+.plane-fly {
+  offset-path: path("M4 36 Q 60 -14 116 36");
+  offset-rotate: auto;
+  animation: fly-arc 2.2s linear infinite;
+}
+.lift { transition: transform 0.15s ease; }
+.lift:active { transform: translateY(-2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .plane-fly { offset-distance: 100%; }
 }
