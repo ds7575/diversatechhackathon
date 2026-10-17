@@ -2,6 +2,20 @@
 
 Only shared/ is implemented. See [contracts/README.md](contracts/README.md) for the proposed API, wire shapes and teammate handoff.
 
+Consume the shared package through its stable root surface:
+
+```js
+import {
+  adaptInstagramExtraction,
+  buildGroupRecommendation,
+  generateItinerary,
+  buildTripBoard,
+  toFrontendTripBoard,
+} from '@travel-planner/shared';
+```
+
+`index.d.ts` provides TypeScript records and function signatures for the frontend. The backend is currently CommonJS and can load this ES module with `await import('@travel-planner/shared')`.
+
 - contracts/index.js: constants, trip/assignment validation and Reel normalization.
 - contracts/fixtures.js: synthetic mock snapshot for frontend hooks.
 - utils/itinerary.js: pure deterministic day grouping, area affinity, interest ranking, capacity overflow and preserved manual edits.

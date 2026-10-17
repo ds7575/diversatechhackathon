@@ -7,7 +7,14 @@ import { buildGroupRecommendation, createRecommendationInput } from '../utils/re
 import { buildTripBoard } from '../utils/trip-board.js';
 import { toBoardingPassCard, toFrontendTripBoard } from '../utils/frontend-card.js';
 import { adaptInstagramExtraction } from '../utils/instagram-import.js';
+import * as sharedPackage from '../index.js';
 const demo = () => structuredClone(demoSnapshot);
+test('package root exposes the stable integration surface', () => {
+ for (const name of ['adaptInstagramExtraction','buildGroupRecommendation','generateItinerary','buildTripBoard','toFrontendTripBoard','validateTrip'])
+  assert.equal(typeof sharedPackage[name],'function');
+ assert.equal(sharedPackage.lisbonSnapshot.trip.destination,'Lisbon');
+ assert.equal(typeof sharedPackage.schemaSql,'string');
+});
 test('normalizes duplicate Reel links and rejects unsafe or unrelated URLs', () => {
  assert.equal(normalizeReelUrl('https://instagram.com/reel/Ab_1/?igsh=abc'), 'https://www.instagram.com/reel/Ab_1/');
  assert.equal(normalizeInstagramUrl('https://instagram.com/p/Post_1/?utm_source=x'), 'https://www.instagram.com/p/Post_1/');
