@@ -1,0 +1,26 @@
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies and generated output
+node_modules/
+.next/
+dist/
+build/
+coverage/
+
+# Local databases and caches
+*.db
+*.db-journal
+.cache/
+.turbo/
+
+# Editor and operating-system files
+.DS_Store
+.idea/
+.vscode/
+
+# Logs
+*.log
+
