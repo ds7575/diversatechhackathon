@@ -1,6 +1,6 @@
-# Travel Sync
+# Trip Sync
 
-Travel Sync turns public Instagram Reels into researched trip ideas that a group can discuss and organize into an editable itinerary.
+Trip Sync turns public Instagram Reels into researched trip ideas that a group can discuss and organize into an editable itinerary.
 
 Instead of treating a Reel as a bookmark, the application extracts explicitly named places, keeps the original Reel as evidence, evaluates each place against every member's preferences, and explains why it may or may not fit the group. Members can react, flag price/distance/effort concerns, and generate a loose day-by-day plan without losing unassigned ideas.
 
