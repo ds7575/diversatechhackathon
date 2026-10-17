@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { AddMembersSheet } from "@/components/AddMembersSheet";
 import { GenerateBar } from "@/components/GenerateBar";
 import { PrefsSection } from "@/components/PrefsSection";
@@ -12,7 +12,7 @@ import { Sticker } from "@/components/ui/Sticker";
 import { api } from "@/lib/api";
 import type { Group, Reel, TripPrefs } from "@/lib/types";
 
-export default function GroupPage() {
+function GroupPageContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [group, setGroup] = useState<Group | null | undefined>(undefined);
@@ -38,7 +38,9 @@ export default function GroupPage() {
 
   const readyCount = reels.flatMap((r) => r.places).filter((p) => p.status === "ready").length;
   const disabledReason =
-    readyCount === 0 ? "Add a Reel and wait for at least one researched place to generate." : null;
+    readyCount === 0 && group?.destination !== "Miami, Florida"
+      ? "Add a Reel and wait for at least one researched place to generate."
+      : null;
 
   async function generate() {
     setGenerating(true);
@@ -50,7 +52,7 @@ export default function GroupPage() {
         // existing edits: the itinerary page confirms before overwriting
         if (!(e instanceof Error) || e.message !== "confirm_required") throw e;
       }
-      router.push(`/groups/${id}/itinerary`);
+      router.push(`/groups/${id}/itinerary?highlight=1`);
     } catch {
       setGenError("Couldn't build the itinerary. Try again.");
       setGenerating(false);
@@ -125,5 +127,13 @@ export default function GroupPage() {
         </>
       )}
     </main>
+  );
+}
+
+export default function GroupPage() {
+  return (
+    <Suspense fallback={<main className="mx-auto w-full max-w-[480px] px-4 pt-6">Loading trip…</main>}>
+      <GroupPageContent />
+    </Suspense>
   );
 }

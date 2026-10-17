@@ -4,9 +4,11 @@ export type LoaderStatus = "processing" | "ready" | "failed";
 
 export function PlaneLoader({
   status,
+  placeCount,
   onRetry,
 }: {
   status: LoaderStatus;
+  placeCount: number;
   onRetry?: () => void;
 }) {
   return (
@@ -34,7 +36,7 @@ export function PlaneLoader({
           <span aria-hidden className="flex h-6 w-6 items-center justify-center rounded-full bg-mint text-ink">
             <Check size={14} />
           </span>
-          Landed
+          {placeCount === 0 ? "No places found" : `${placeCount} ${placeCount === 1 ? "place" : "places"}`}
         </span>
       )}
       {status === "failed" && (

@@ -22,12 +22,12 @@ export type BoardingPassProps = {
   onReact?: (kind: ReactionKind) => void;
 };
 
-const BUTTONS: { kind: ReactionKind; text: string }[] = [
-  { kind: "interested", text: "Interested" },
-  { kind: "pass", text: "Pass" },
-  { kind: "price", text: "Price" },
-  { kind: "distance", text: "Distance" },
-  { kind: "effort", text: "Effort" },
+const BUTTONS: { kind: ReactionKind; text: string; selected: string }[] = [
+  { kind: "interested", text: "Interested", selected: "bg-mint text-ink" },
+  { kind: "pass", text: "Pass", selected: "bg-airmail-red text-white" },
+  { kind: "price", text: "Price", selected: "bg-sun text-ink" },
+  { kind: "distance", text: "Distance", selected: "bg-airmail-blue text-white" },
+  { kind: "effort", text: "Effort", selected: "bg-[#e9ddf8] text-ink" },
 ];
 
 export function BoardingPassCard(p: BoardingPassProps) {
@@ -41,18 +41,22 @@ export function BoardingPassCard(p: BoardingPassProps) {
           <h3 className="break-words font-heading text-2xl font-extrabold leading-tight tracking-tight">
             {p.name}
           </h3>
-          <p className="label-mono mt-1 text-[11px] text-ink-soft">{p.location}</p>
-          <p className="mt-2 text-sm">{p.summary}</p>
-          <p className="label-mono mt-2 text-xs font-bold">{p.cost}</p>
-          <ul className="mt-2 list-disc pl-4 text-sm text-ink-soft">
-            {p.caveats.map((c) => (
-              <li key={c}>{c}</li>
-            ))}
-          </ul>
-          <div className="mt-3 flex items-start gap-3">
-            <PassportStamp label={p.label} />
-            <p className="text-sm">{p.reason}</p>
-          </div>
+          {p.location && <p className="label-mono mt-1 text-[11px] text-ink-soft">{p.location}</p>}
+          {p.summary && <p className="mt-2 text-sm">{p.summary}</p>}
+          {p.cost && <p className="label-mono mt-2 text-xs font-bold">{p.cost}</p>}
+          {!!p.caveats.length && (
+            <ul className="mt-2 list-disc pl-4 text-sm text-ink-soft">
+              {p.caveats.map((c) => (
+                <li key={c}>{c}</li>
+              ))}
+            </ul>
+          )}
+          {p.reason && (
+            <div className="mt-3 flex items-start gap-3">
+              <PassportStamp label={p.label} />
+              <p className="text-sm">{p.reason}</p>
+            </div>
+          )}
           {(["price", "distance", "effort"] as const).some((k) => (p.counts[k] ?? 0) > 0) && (
             <div className="mt-3 flex flex-wrap gap-2">
               {(["price", "distance", "effort"] as const)
@@ -67,7 +71,7 @@ export function BoardingPassCard(p: BoardingPassProps) {
         <div aria-hidden className="w-0 border-l-2 border-dashed border-ink/30" />
 
         <div className="flex w-32 shrink-0 flex-col gap-1 p-2">
-          {BUTTONS.map(({ kind, text }) => {
+          {BUTTONS.map(({ kind, text, selected }) => {
             const on = p.mine === kind;
             return (
               <button
@@ -81,7 +85,7 @@ export function BoardingPassCard(p: BoardingPassProps) {
                 }}
                 onAnimationEnd={() => setPressed(null)}
                 className={`label-mono min-h-11 border-2 border-ink px-2 text-[11px] font-bold ${
-                  on ? "bg-ink text-paper" : "bg-card text-ink"
+                  on ? selected : "bg-card text-ink"
                 } ${pressed === kind ? "stamp-press" : ""}`}
               >
                 {text} {p.counts[kind] ?? 0}

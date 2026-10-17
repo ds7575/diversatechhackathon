@@ -116,7 +116,7 @@ export function ReelsSection({ reels, onAdd, onRetry, onReact, onConfirm, onFixM
           disabled={busy || !url.trim()}
           className="label-mono min-h-11 bg-airmail-red px-4 text-xs font-bold text-white disabled:opacity-50"
         >
-          {busy ? "Adding…" : "Add"}
+          {busy ? "Extracting…" : "Extract Reel"}
         </button>
       </form>
       {error && (
@@ -142,14 +142,40 @@ export function ReelsSection({ reels, onAdd, onRetry, onReact, onConfirm, onFixM
                 >
                   {r.url.replace(/^https?:\/\/(www\.)?/, "")}
                 </a>
-                <PlaneLoader status={r.status} onRetry={() => onRetry(r.id)} />
+                <PlaneLoader status={r.status} placeCount={r.places.length} onRetry={() => onRetry(r.id)} />
               </div>
+              {r.status === "ready" && r.places.length === 0 && (
+                <p className="border-2 border-ink/20 bg-card p-3 text-sm text-ink-soft">
+                  Glasser captured the Reel, but found no explicit place names in its available text.
+                </p>
+              )}
               {r.places.map((p) =>
                 p.status === "needs_confirmation" ? (
                   <NeedsConfirmation key={p.id} place={p} onConfirm={onConfirm} onFixMatch={onFixMatch} />
                 ) : (
                   <BoardingPassCard key={p.id} {...p} onReact={(k) => onReact(p.id, k)} />
                 ),
+              )}
+              {!!r.sources?.length && (
+                <details className="border-2 border-ink/20 bg-card p-3">
+                  <summary className="label-mono cursor-pointer text-xs font-bold">
+                    View Glasser extraction ({r.sources.length} sources)
+                  </summary>
+                  <div className="mt-3 flex flex-col gap-3">
+                    {r.sources.map((source, index) => (
+                      <div key={`${source.source}-${index}`}>
+                        <p className="label-mono text-[10px] font-bold uppercase">
+                          {source.source.replaceAll("_", " ")}
+                          {source.timestamp_seconds !== null ? ` · ${source.timestamp_seconds}s` : ""}
+                        </p>
+                        <p className="mt-1 whitespace-pre-wrap break-words text-sm">{source.extracted_text}</p>
+                        {source.uncertainty?.uncertain && (
+                          <p className="mt-1 text-xs text-ink-soft">Uncertain: {source.uncertainty.reason ?? "Review this extraction."}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </details>
               )}
             </li>
           ))}

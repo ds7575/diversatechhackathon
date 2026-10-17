@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FlightPath } from "@/components/ui/FlightPath";
 import { api } from "@/lib/api";
@@ -12,8 +12,9 @@ import type { Group, Itinerary, TimeBlock } from "@/lib/types";
 
 const LEGS = "ABCDEFGHIJ";
 
-export default function ItineraryPage() {
+function ItineraryPageContent() {
   const { id } = useParams<{ id: string }>();
+  const highlightGeneratedPlan = useSearchParams().get("highlight") === "1";
   const [group, setGroup] = useState<Group | null>(null);
   const [plan, setPlan] = useState<Itinerary | null | undefined>(undefined);
   const [confirming, setConfirming] = useState(false);
@@ -61,6 +62,11 @@ export default function ItineraryPage() {
         <TripHeader name={group.name} destination={group.destination} start={group.start_date} end={group.end_date} />
       )}
       <h2 className="font-heading text-3xl font-extrabold leading-none tracking-tight">Itinerary</h2>
+      {highlightGeneratedPlan && plan?.generated && (
+        <p role="status" className="mt-3 border-2 border-ink bg-sun p-3 text-sm font-bold">
+          Miami demo · {plan.places.length} stops. Reactions prioritize the schedule: Interested moves up, Pass moves later, and all stops stay in the plan.
+        </p>
+      )}
 
       {plan === undefined && <p className="label-mono mt-4 text-xs">Loading…</p>}
       {plan === null && <p role="alert" className="mt-4 font-bold text-airmail-red">Couldn&apos;t load the plan.</p>}
@@ -85,6 +91,8 @@ export default function ItineraryPage() {
                   onMoveDay={move}
                   onMoveBlock={moveBlock}
                   onRemove={remove}
+                  onReact={(placeId, kind) => act(() => api.reactToPlace(id, placeId, kind))}
+                  highlighted={highlightGeneratedPlan}
                 />
               </FlightPath>
             ))}
@@ -145,5 +153,13 @@ export default function ItineraryPage() {
         </>
       )}
     </main>
+  );
+}
+
+export default function ItineraryPage() {
+  return (
+    <Suspense fallback={<main className="mx-auto w-full max-w-[480px] px-4 pt-6">Loading itinerary…</main>}>
+      <ItineraryPageContent />
+    </Suspense>
   );
 }

@@ -2,7 +2,7 @@
 
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
-import type { Place, TimeBlock } from "@/lib/types";
+import type { Place, ReactionKind, TimeBlock } from "@/lib/types";
 
 const BLOCKS: { id: TimeBlock; label: string; start: string }[] = [
   { id: "morning", label: "Morning", start: "10:00" },
@@ -33,6 +33,23 @@ export type PlaceHandlers = {
   onMoveDay: (placeId: string, day: number | null) => void;
   onMoveBlock: (placeId: string, block: TimeBlock) => void;
   onRemove?: (placeId: string) => void;
+  onReact?: (placeId: string, kind: ReactionKind) => void;
+};
+
+const REACTIONS: { kind: ReactionKind; label: string; selected: string }[] = [
+  { kind: "interested", label: "Interested", selected: "bg-mint text-ink" },
+  { kind: "pass", label: "Pass", selected: "bg-airmail-red text-white" },
+  { kind: "price", label: "Price", selected: "bg-sun text-ink" },
+  { kind: "distance", label: "Distance", selected: "bg-airmail-blue text-white" },
+  { kind: "effort", label: "Effort", selected: "bg-[#e9ddf8] text-ink" },
+];
+
+const PLACE_HIGHLIGHTS: Record<ReactionKind, string> = {
+  interested: "bg-mint",
+  pass: "bg-[#ffdada]",
+  price: "bg-sun",
+  distance: "bg-[#d9eaff]",
+  effort: "bg-[#e9ddf8]",
 };
 
 export function PlaceMenu({
@@ -117,8 +134,9 @@ export function PlaceMenu({
 export function DayTimeline({
   places,
   days,
+  highlighted = false,
   ...handlers
-}: PlaceHandlers & { places: Place[]; days: number[] }) {
+}: PlaceHandlers & { places: Place[]; days: number[]; highlighted?: boolean }) {
   if (places.length === 0) return <p className="text-sm text-ink-soft">Nothing here yet. Downtime.</p>;
 
   const sorted = [...places].sort((a, b) => {
@@ -156,11 +174,25 @@ export function DayTimeline({
                     <span aria-hidden className="relative mx-auto h-full w-px bg-ink/30">
                       <span className="absolute -left-[4px] top-4 h-[9px] w-[9px] rounded-full border-2 border-ink bg-paper" />
                     </span>
-                    <article className="flex items-start gap-2 border-2 border-ink bg-card p-3">
+                    <article className={`flex items-start gap-2 border-2 border-ink p-3 ${p.mine ? PLACE_HIGHLIGHTS[p.mine] : highlighted ? "bg-sun shadow-[5px_5px_0_var(--ink)]" : "bg-card"}`}>
                       <div className="min-w-0 flex-1">
                         <h5 className="break-words font-heading text-lg font-extrabold leading-tight">{p.name}</h5>
                         <p className="label-mono mt-1 text-[11px] text-ink-soft">{p.location}</p>
                         <p className="label-mono mt-1 text-[11px]">{duration(p.duration_min)}</p>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {REACTIONS.map(({ kind, label, selected }) => (
+                            <button
+                              key={kind}
+                              type="button"
+                              aria-pressed={p.mine === kind}
+                              aria-label={`${label} for ${p.name}, ${p.counts[kind] ?? 0} so far`}
+                              onClick={() => handlers.onReact?.(p.id, kind)}
+                              className={`label-mono min-h-9 border border-ink px-2 text-[9px] font-bold ${p.mine === kind ? selected : "bg-card text-ink"}`}
+                            >
+                              {label} {p.counts[kind] ?? 0}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                       <PlaceMenu place={p} days={days} {...handlers} />
                     </article>

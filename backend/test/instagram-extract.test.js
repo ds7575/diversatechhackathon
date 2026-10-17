@@ -117,6 +117,18 @@ test('caption prose keeps named places and rejects an informational label', () =
   assert.equal(result.candidates.every(candidate => candidate.uncertain), true);
 });
 
+test('caption explicitly naming a capital and districts yields place candidates with source evidence', () => {
+  const response = providerResponse();
+  const caption = 'Tokyo, the capital of Japan, is a city of endless contrasts. In districts like Shibuya and Shinjuku, the energy never slows down.';
+  response.data.xdt_shortcode_media.edge_media_to_caption.edges[0].node.text = caption;
+  response.data.xdt_shortcode_media.ocr_text = '';
+  const result = extractFromResponse(buildExtractionInput(response), URL);
+  assert.deepEqual(result.candidates.map(candidate => candidate.name), ['Tokyo', 'Shibuya', 'Shinjuku']);
+  assert.equal(result.candidates[0].evidence[0].quote, 'Tokyo, the capital of Japan');
+  assert.equal(result.candidates[1].evidence[0].quote, 'In districts like Shibuya and Shinjuku');
+  assert.equal(result.candidates.every(candidate => candidate.uncertain), true);
+});
+
 test('a labeled food-pick list yields only its explicit venues and city', () => {
   const response = providerResponse();
   response.data.xdt_shortcode_media.edge_media_to_caption.edges[0].node.text = [
@@ -135,4 +147,24 @@ test('a labeled food-pick list yields only its explicit venues and city', () => 
     'cellercanroca', 'restaurantmassana', 'escabetxrestaurant', 'Probocador', 'Girona',
   ]);
   assert.equal(result.candidates.some(candidate => candidate.name === 'travelwiththewesties'), false);
+});
+
+test('a numbered Instagram must-do list yields explicit multiword POIs', () => {
+  const response = providerResponse();
+  response.data.xdt_shortcode_media.edge_media_to_caption.edges[0].node.text = [
+    'Our fave spots & must-dos in Miami:',
+    '1. 🌊 South Beach - Turquoise water and white sand',
+    '2. 🥑 Pura Vida Miami - Healthy brunch',
+    '3. 💃 Little Havana (Calle Ocho) - Cuban culture',
+    '4. 🌅 South Pointe Park - The best sunset views',
+    '5. 🏙️ Brickell district - Modern skyline',
+    '6. 🏛️ Vizcaya Museum & Gardens - A European villa',
+  ].join('\n');
+  response.data.xdt_shortcode_media.ocr_text = '';
+  const result = extractFromResponse(buildExtractionInput(response), URL);
+  assert.deepEqual(result.candidates.map(candidate => candidate.name), [
+    'South Beach', 'Pura Vida Miami', 'Little Havana (Calle Ocho)', 'South Pointe Park',
+    'Brickell district', 'Vizcaya Museum & Gardens',
+  ]);
+  assert.equal(result.candidates[0].evidence[0].quote, '1. 🌊 South Beach - Turquoise water and white sand');
 });

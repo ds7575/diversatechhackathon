@@ -26,6 +26,12 @@ export type CreateGroupInput = {
 };
 
 export type ReelStatus = "processing" | "ready" | "failed";
+export type ReelSource = {
+  source: "caption" | "transcript" | "on_screen_text";
+  timestamp_seconds: number | null;
+  extracted_text: string;
+  uncertainty?: { uncertain: boolean; incomplete: boolean; reason: string | null };
+};
 export type TimeBlock = "morning" | "afternoon" | "evening";
 export type RecLabel = "strong" | "discuss" | "needs_info";
 export type ReactionKind = "interested" | "pass" | "price" | "distance" | "effort";
@@ -56,6 +62,8 @@ export type Reel = {
   url: string;
   status: ReelStatus;
   places: Place[];
+  sources?: ReelSource[];
+  uncertainties?: string[];
 };
 
 export type Transport = "walk" | "transit" | "car";
