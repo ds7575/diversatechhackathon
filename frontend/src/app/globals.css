@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #fff6e5;
+  --paper: #f1eefb;
+  --accent: #5e5596;
   --card: #ffffff;
   --ink: #14213d;
   --ink-soft: #4a5578;
@@ -18,6 +19,7 @@
 
 @theme inline {
   --color-paper: var(--paper);
+  --color-accent: var(--accent);
   --color-card: var(--card);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
@@ -31,8 +33,12 @@
   --font-hand: var(--font-caveat);
 }
 
+html,
 body {
   background: var(--paper);
+}
+
+body {
   color: var(--ink);
   font-family: var(--font-dm-sans), system-ui, sans-serif;
 }
@@ -93,3 +99,9 @@ body {
   from { left: 0; }
 }
 .plane-glide { animation: glide 0.5s ease-out both; }
+
+/* logo tile: hairline border so the light tile reads on --paper */
+.logo {
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 25%; /* = the tile's rx 16/64 (14px at 56px) */
+}

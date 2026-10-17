@@ -29,7 +29,7 @@ export default function Home() {
       <div className="fixed inset-x-0 bottom-0 bg-paper px-4 pb-4 pt-3">
         <Link
           href="/groups/new"
-          className="label-mono mx-auto flex min-h-14 w-full max-w-[480px] items-center justify-center bg-airmail-red text-sm font-bold text-white"
+          className="label-mono mx-auto flex min-h-14 w-full max-w-[480px] items-center justify-center bg-accent text-sm font-bold text-white"
         >
           + New trip
         </Link>
