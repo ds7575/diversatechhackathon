@@ -1,0 +1,428 @@
+Group Travel Product Requirements
+iPhone-first prototype · Three-hour hackathon · $9 Glasser budget
+1. Product overview
+A shared travel planner where friends contribute Instagram Reels, evaluate the places together, and turn their suggestions into an editable trip organized by day.
+The app extracts places from shared videos, researches practical details, and explains why each place might suit the group. Friends express interest or flag concerns about price, distance, or effort. The app then proposes a rough plan using those suggestions and preferences.
+The prototype will support approximately 20–30 public Instagram Reels.
+2. Why we are building this
+Friends already share travel ideas. The difficult part comes afterward:
+Identifying the places shown in each video.
+Checking whether they are worth visiting.
+Finding their location and approximate cost.
+Understanding who actually wants to go.
+Arranging activities into a realistic trip.
+That work often falls to one organizer. Other friends contribute ideas without considering how they fit together, then raise concerns after someone has assembled the plan.
+We want to reduce that research and coordination work while keeping everyone involved. The original video, contributor, preferences, and concerns should remain connected to each suggestion as it moves into the plan.
+3. Ideal customer profile
+Our initial audience is groups of 3–8 college friends or young adults who:
+Have chosen a destination.
+Discover travel ideas on Instagram.
+Have different budgets, interests, and preferred activity levels.
+Want help planning without committing to a tightly scheduled itinerary.
+This is an initial customer hypothesis to validate.
+Primary user: The organizer
+The organizer creates the trip, collects suggestions, researches options, and tries to assemble a plan that works for the group.
+They need less manual research and a clear view of people’s preferences and concerns.
+Secondary user: The contributor
+The contributor sends interesting places but may not want to organize the trip.
+They need a quick way to save ideas, show interest, and raise a concern without doing additional research.
+Low-engagement user
+Some friends contribute little until they disagree with a suggestion.
+The app should make it easy for them to state preferences early or flag a specific concern later. Participation should take a few taps.
+4. Expected benefits
+User
+Expected benefit
+Organizer
+Less time reconstructing videos, researching places, and chasing responses.
+Contributor
+Their suggestions stay visible and are considered when planning.
+Less involved friend
+A simple way to express preferences or objections.
+Whole group
+A shared plan that reflects broad interest and makes tradeoffs visible.
+
+These are intended benefits. We have not measured them yet.
+5. Existing products and our opportunity
+Social imports, shared maps, and collaborative itineraries already exist. Our opportunity is to make the group’s decision process easier.
+Comparison note: The table reflects published product descriptions, not hands-on testing. Where a feature was not established in the reviewed material, it is labeled “not verified.” That does not prove the competitor lacks it.
+Alternative
+What it already does
+What our proposed experience adds
+What is missing or not verified
+Wanderlog
+Itinerary planning, maps, collaboration, reservations, and imports from links or Reels.
+Interest and concern signals beside each place, recommendations that explain group fit, and loose day planning informed by those signals.
+We have not verified whether it combines individual preferences, structured price/distance/effort concerns, and explanations of how those concerns affect the proposed plan.
+Mindtrip
+Extracts details from social content for guides and supports personalized trip planning and co-planning.
+A focused friend-group workflow that preserves who suggested each place, who is interested, and what concerns remain unresolved.
+We have not verified an equivalent workflow connecting structured member concerns directly to editable day suggestions.
+Group chats
+Familiar, low-effort sharing and discussion.
+Automatically researched place cards, duplicate merging, visible reactions, and a persistent day-by-day plan.
+Ordinary chat messages do not automatically become structured place records or an editable itinerary. Decisions require manual tracking or additional tools.
+Shared notes or spreadsheets
+Flexible lists, collaborative editing, and manually organized plans.
+Video extraction, place matching, researched briefs, and recommendations based on group preferences.
+These capabilities generally require manual work or separately configured integrations.
+
+Wanderlog’s developer listing explicitly advertises importing links and sharing Reels to create itineraries. Mindtrip describes social-post extraction and co-planning. We should therefore avoid pitching Reel import alone as our differentiator. apps.apple.com
+Our differentiation hypothesis
+The strongest opportunity is connecting these pieces in one simple workflow:
+A friend’s suggestion → researched place → group interest and concerns → explained day assignment.
+For example:
+“Four people are interested in this waterfall. It fits the shared budget, but one person flagged the steep walk. We placed it on a lighter day and kept the concern visible.”
+We need to test whether this helps groups make decisions more easily than their current tools.
+6. Product principles
+Save immediately
+Store the shared link before researching it. People should be able to return to scrolling without waiting for processing.
+Explain recommendations
+Use short, specific reasons based on retrieved information and group preferences. Avoid unsupported numerical match scores.
+Keep important concerns visible
+A positive recommendation does not mean everyone agrees. Show individual concerns alongside group interest.
+Preserve flexibility
+Use loose day buckets and an Unassigned section. Support both spontaneous and organized groups.
+Make correction easy
+People should be able to fix a place match, add a missed suggestion, or move an activity without restarting the process.
+7. User journey
+Step 1: Create a trip
+The organizer enters:
+Destination.
+Travel dates.
+Accommodation or base area.
+Transport mode.
+Approximate per-person activity budget.
+Shared interests.
+Preferred pace or activity level.
+Dates and accommodation can be marked unknown. Missing information should reduce the specificity of recommendations rather than block setup.
+Step 2: Invite friends
+Friends join through a private invite link and add:
+Display name.
+A few interests.
+Budget preference.
+Preferred activity level.
+Optional firm limits or accessibility needs.
+Individual preferences remain separate from the shared trip profile. The app should explain which preferences are visible to other members.
+Step 3: Save a Reel from an iPhone
+The intended experience is:
+Instagram Share → trip-saving action → choose trip → Save.
+For the prototype, test an installed iOS Shortcut that receives the shared URL and submits it to our backend.
+The fallback is:
+Copy Link → open the mobile website → paste → Save.
+A native Share Extension is a later implementation. A mobile website alone should not be assumed to appear as an iPhone share target. developer.apple.com
+Once saved, show:
+“Saved. Researching your suggestions.”
+The user can leave immediately.
+Step 4: Extract and research places
+If a Reel contains five identifiable places, automatically create five separate suggestions.
+If the same place has already been added, combine the suggestions while preserving all contributors and original links.
+Ambiguous matches appear as Needs confirmation and stay out of automatic planning until corrected.
+Step 5: Review the place cards
+Each card includes:
+Place name.
+Brief description.
+What makes it distinctive.
+Location.
+Available approximate cost, including currency and whether it is per person.
+Original Reel and contributor.
+One or two meaningful caveats.
+A short recommendation for the group.
+Interest and concern signals.
+An expanded view shows supporting sources and when the information was retrieved.
+Step 6: React and flag concerns
+Members can select:
+Interested.
+Pass.
+Price concern.
+Distance concern.
+Effort concern.
+Concerns can include an optional note.
+No response remains separate from Pass. A concern stays visible for discussion and does not automatically veto the suggestion.
+Step 7: Generate a rough plan
+The app proposes:
+Day 1.
+Day 2.
+Additional days as needed.
+Unassigned ideas.
+The plan favors broad group interest, groups nearby activities, and considers effort and known constraints.
+Each day has a brief explanation of why those activities were grouped.
+Step 8: Edit together
+Members can:
+Move an activity to another day.
+Return an activity to Unassigned.
+Remove an activity from the plan without deleting the saved idea.
+Review the original video and concerns.
+Changes are saved for everyone. Regeneration requires an explicit action and must not silently overwrite edits.
+8. Data sources and visual extraction
+Supported sources
+Source
+Purpose
+Prototype scope
+Public Instagram Reels
+Original inspiration, caption, available media, and optional transcript.
+Primary input.
+Place search through Glasser
+Resolve names to real locations and retrieve available addresses, coordinates, and ratings.
+Core enrichment.
+Official business or attraction websites
+Verify available prices, booking requirements, and practical details.
+Targeted research.
+Review endpoints
+Support balanced pros and caveats using actual review text.
+Include only if coverage is validated.
+TikTok and YouTube Shorts
+Additional inspiration sources.
+Deferred.
+
+How visually heavy Reels are handled
+Glasser retrieves the media. A separate multimodal model interprets sampled frames and available text.
+Where information appears
+Extraction method
+Post caption
+Extract names from retrieved text.
+Spoken narration
+Use an available transcript.
+On-screen labels
+Sample video frames and use a vision model to read them.
+Unnamed scenery
+Save the inspiration and request clarification when necessary.
+
+The verified Glasser endpoints provide Reel information, transcripts, and media downloads. They do not establish built-in visual identification of places. The application must perform that processing. glasser.ai
+Frame sampling may miss text that appears briefly. Users must be able to add a missed place or correct an extraction.
+9. System architecture
+Use one mobile web frontend, one backend, and one shared database.
+Component
+Responsibility
+iPhone capture
+Shortcut or paste-link page sends the URL and trip reference.
+Mobile web app
+Trip setup, Ideas and Plan views, preferences, reactions, corrections, and day edits.
+Backend
+Checks access, stores imports, runs research, calls Glasser and the model, and tracks spend.
+Database
+Stores trips, members, imports, places, evidence, reactions, concerns, and day assignments.
+Background processing
+Processes saved links and updates their status.
+Glasser
+Retrieves approved social, place, and supporting website data.
+Multimodal model
+Extracts information from frames and text, writes briefs, and proposes day assignments.
+
+Processing one Reel
+Save and deduplicate. Normalize the URL, store the contributor, and check whether the Reel was already processed.
+Retrieve content. Use Glasser to fetch the Reel and downloadable media.
+Extract candidates. Process the caption, sampled frames, and transcript when needed.
+Match places. Search candidate names with destination context and check the location.
+Research details. Retrieve supporting information for the matched places.
+Create cards. Save the brief, evidence, recommendation, and source links.
+Update status. Mark the import Ready, Partially ready, Needs confirmation, or Failed.
+Successful places should remain available if another place in the same Reel fails.
+Main data records
+Record
+Key information
+Trip
+Destination, dates, base areas, transport, shared preferences.
+Member
+Stable identity, trip membership, personal preferences.
+Import
+Original URL, contributor, processing status, errors.
+Place
+Matched identity, location, brief, practical details, evidence.
+Reaction
+Member, place, Interested or Pass.
+Concern
+Member, place, concern type, optional note.
+Day assignment
+Place, day, position, explanation.
+
+Access and storage
+Keep provider keys on the backend. Check trip membership on every request.
+Use revocable invite links and a session for each joined member. A display name alone is not authentication.
+Delete temporary media after processing and follow provider restrictions on retention and reuse.
+10. How recommendations and planning work
+Place recommendations
+Each recommendation should explain:
+Why the experience matches the group’s interests.
+Whether available cost information fits the budget.
+Relevant distance or effort considerations.
+Important concerns or missing information.
+Use plain labels such as Strong option, Worth discussing, or Needs more information, supported by a short explanation.
+A recommendation must not imply unanimous agreement.
+Rough plan generation
+The app should:
+Start with confirmed saved places.
+Respect explicit firm limits.
+Favor broad interest while keeping missing responses separate.
+Group places by geographic area.
+Account for available duration and effort information.
+Leave room for downtime.
+Keep additional suggestions in Unassigned.
+Concern flags are discussion signals. They become hard exclusions only when someone explicitly identifies a firm limit.
+Nearby coordinates support geographic grouping. They do not establish driving time or route practicality.
+Validate generated plans
+Before saving a generated plan, check that:
+Every assigned place belongs to the trip.
+Day numbers are valid.
+Activities are not accidentally duplicated.
+Unconfirmed places are excluded.
+Existing edits are preserved or replacement is explicitly confirmed.
+Opening hours, closures, and booking requirements should remain unverified unless supporting information was retrieved.
+11. Reliability and cost controls
+Reliability requirements
+Test actual endpoint responses before building the parser.
+Keep the original link when processing fails.
+Preserve partial results.
+Allow manual place entry and correction.
+Never invent place names, prices, addresses, or review consensus.
+Use actual review text before writing review-based pros and cons.
+Show unknown information clearly.
+Glasser’s verified Reel endpoints do not publish an output schema, so response handling must be based on real tests. glasser.ai
+Efficiency requirements
+Use a fixed set of approved endpoints.
+Pin endpoint versions where supported.
+Deduplicate links and places before enrichment.
+Reuse research where provider terms permit.
+Use timeouts and bounded retries.
+Reuse idempotency keys for transport retries.
+Make no Glasser calls for votes, concerns, or day edits.
+Generate plans from stored research.
+Budget for 20–30 Reels
+Operation
+Published unit cost
+Illustrative usage
+Instagram media download
+$0.02068 per call
+30 calls = $0.6204
+Optional Instagram transcript
+$0.00188 per call
+30 calls = $0.0564
+Serper place search
+$0.0011 per call
+150 calls = $0.1650
+Subtotal for these operations
+
+
+About $0.84
+
+These catalog prices leave room within the $9 Glasser budget for supporting research and testing. They exclude additional research calls, retries, and model processing. Confirm current charges before implementation. glasser.ai
+Suggested allocation:
+Purpose
+Budget
+Extraction and enrichment validation
+$2
+Development and demo usage
+$4
+Reserve
+$3
+Total
+$9
+
+Track spend on the backend and stop new requests before their projected charges exceed the remaining budget. Vision-model and language-model usage need a separate budget.
+12. Mobile experience and accessibility
+Mobile layout
+Use a single-column layout with two main views:
+Ideas: Saved places, reactions, and concerns.
+Plan: Day buckets and Unassigned ideas.
+Keep an obvious Add action available. Put the essential information on each card and allow expansion for research details.
+Interface accessibility
+Use touch targets at least 44 by 44 points.
+Support larger text without clipping controls.
+Label controls for VoiceOver.
+Show reactions and concerns with text, not color alone.
+Provide text equivalents for video-derived suggestions.
+Avoid autoplaying videos.
+Offer list access to anything shown on a map.
+Provide a “Move to day” control so dragging is optional.
+Announce processing results without repeatedly interrupting reading.
+Preserve saved links through network failures and provide retry actions.
+Travel accessibility
+Let members state mobility, dietary, or activity limitations.
+Do not label a place wheelchair accessible or suitable for an allergy without supporting evidence. Missing information should stay visible so the group can verify it.
+13. Prototype scope
+Build
+Shared trip creation and joining.
+Shared and individual preferences.
+iPhone link capture with a paste fallback.
+Public Instagram Reel processing.
+Separate place cards for identifiable suggestions.
+Duplicate merging.
+Short researched briefs and group recommendations.
+Interest reactions and structured concerns.
+Rough day-plan generation.
+Manual day changes and Unassigned ideas.
+Saved state across refreshes.
+Defer
+Native app distribution.
+TikTok and YouTube support.
+Booking and payments.
+Expense splitting.
+Hourly schedules.
+Live route optimization.
+Continuous automatic replanning.
+Full group chat.
+Push notifications.
+If visual extraction proves unreliable, narrow support to captions and transcripts with manual place entry. Clearly describe that limitation.
+14. Three-hour build plan
+Time
+Deliverable
+0–30 minutes
+Test five varied Reels through Glasser and the model. Test iPhone capture. Confirm a working extraction route.
+30–100 minutes
+Build trip setup, joining, link saving, research processing, and place cards.
+100–145 minutes
+Add reactions, concerns, rough-plan generation, and day controls.
+145–180 minutes
+Test the multi-user iPhone demo, fix failures, and check spend.
+
+The first 30 minutes determine whether the intended visual workflow is feasible within the remaining time.
+15. Acceptance criteria
+Complete group workflow
+A three-person group can:
+Join the same trip.
+Add preferences.
+Share or paste a Reel.
+Review extracted places.
+Express interest and flag a concern.
+Generate a rough plan.
+Move an activity to another day.
+See the saved change from another member’s device.
+Data and reliability
+Duplicate imports do not repeat enrichment.
+Uncertain matches stay out of generated plans.
+Original links and contributors remain attached.
+Refreshing retains reactions and edits.
+Partial failures preserve successful place cards.
+Missing information is not fabricated.
+Suggested technical targets
+Recover at least 80% of explicitly named places across ten representative Reels.
+Make no incorrect automatic place matches in that test.
+Complete most imports within 90 seconds.
+Keep total Glasser spending below $9.
+These are proposed targets, not observed results. Record failures and avoid treating a small test as proof of general reliability.
+16. Product validation
+After the demo, ask:
+Did the group spend less time researching shared videos?
+Did members understand why places were recommended?
+Were concerns raised early enough to influence planning?
+Could the group edit the plan without depending entirely on one organizer?
+Did the loose day structure work for both organized and spontaneous planning?
+Compare the same planning task with the group’s current workflow. The product earns its place if people can reach a useful shared plan with less research and coordination.
+17. Open questions before implementation
+Does the iOS Shortcut receive a usable URL from Instagram’s actual share flow?
+Can sampled frames reliably capture names in rapid-cut Reels?
+How well do place searches handle ambiguous names and multi-location businesses?
+Which sources provide usable review text and cost information?
+What model-processing budget is available separately from Glasser?
+Is the full workflow achievable in three hours, or should the demo narrow extraction support?
+18. Sources
+Published product descriptions and API documentation reviewed October 16, 2026.
+Wanderlog product overview
+Wanderlog App Store listing
+Mindtrip creator program
+Glasser Instagram media download
+Glasser Instagram transcript
+Glasser place search
+Apple Share Extensions
+WebKit share target support tracker
+Glasser readable webpage extraction
+
