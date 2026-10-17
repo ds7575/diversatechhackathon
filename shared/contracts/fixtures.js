@@ -27,3 +27,39 @@ export const demoSnapshot = {
   }],
   assignments: [], planRevision: 0,
 };
+
+/** Synthetic Lisbon fixture for end-to-end integration; facts are demo copy, not travel research. */
+export const lisbonSnapshot = {
+  trip: { id: 'lisbon-trip', name: 'Lisbon with friends', destination: 'Lisbon', startDate: '2026-06-12', endDate: '2026-06-14', baseArea: 'Baixa', transport: 'Transit and walking', budget: 'Moderate', preferences: {} },
+  members: [
+    { id: 'maya', tripId: 'lisbon-trip', displayName: 'Maya', preferences: { interests: ['local food', 'markets'], budgetLevel: 'moderate', activityLevel: 'medium', crowdPreference: 'neutral', maxTravelMinutes: 35 }, firmLimits: {} },
+    { id: 'dev', tripId: 'lisbon-trip', displayName: 'Dev', preferences: { interests: ['local food', 'architecture'], budgetLevel: 'budget', activityLevel: 'medium', crowdPreference: 'avoid', maxTravelMinutes: 30 }, firmLimits: {} },
+    { id: 'sam', tripId: 'lisbon-trip', displayName: 'Sam', preferences: { interests: ['views', 'history'], budgetLevel: 'moderate', activityLevel: 'low', crowdPreference: 'neutral', maxTravelMinutes: 25 }, firmLimits: { accessibilityRequired: true } },
+  ],
+  imports: [
+    { id: 'reel-market', tripId: 'lisbon-trip', normalizedUrl: 'https://www.instagram.com/reel/LISBONMARKET/', thumbnailUrl: 'https://images.example/lisbon-market.jpg', contributorIds: ['maya', 'dev'], status: 'ready', errorCode: null },
+    { id: 'reel-belem', tripId: 'lisbon-trip', normalizedUrl: 'https://www.instagram.com/reel/LISBONBELEM/', thumbnailUrl: 'https://images.example/belem.jpg', contributorIds: ['dev'], status: 'ready', errorCode: null },
+    { id: 'reel-view', tripId: 'lisbon-trip', normalizedUrl: 'https://www.instagram.com/reel/LISBONVIEW/', thumbnailUrl: 'https://images.example/lisbon-view.jpg', contributorIds: ['sam'], status: 'needs_confirmation', errorCode: null },
+  ],
+  places: [
+    { id: 'time-out-market', tripId: 'lisbon-trip', name: 'Time Out Market Lisboa', matchStatus: 'confirmed', area: 'Cais do Sodré', latitude: null, longitude: null, brief: 'Food hall with stalls from a range of local chefs.', practical: { cost: 'EUR 20 pp', caveats: ['Busy at peak meal times'] } },
+    { id: 'pasteis-belem', tripId: 'lisbon-trip', name: 'Pastéis de Belém', matchStatus: 'confirmed', area: 'Belém', latitude: null, longitude: null, brief: 'Historic bakery known for Portuguese custard tarts.', practical: { cost: 'EUR 10 pp', caveats: ['Queues are common'] } },
+    { id: 'miradouro', tripId: 'lisbon-trip', name: 'Possible Alfama viewpoint', matchStatus: 'uncertain', area: 'Alfama', latitude: null, longitude: null, brief: 'A viewpoint mentioned in a Reel that still needs confirmation.', practical: { priceText: 'Cost unknown', caveats: ['Steep approach may require extra effort'] } },
+  ],
+  importPlaces: [
+    { importId: 'reel-market', placeId: 'time-out-market' },
+    { importId: 'reel-belem', placeId: 'pasteis-belem' },
+    { importId: 'reel-view', placeId: 'miradouro' },
+  ],
+  evidence: [],
+  reactions: [
+    { placeId: 'time-out-market', memberId: 'maya', value: 'interested' },
+    { placeId: 'time-out-market', memberId: 'dev', value: 'interested' },
+    { placeId: 'pasteis-belem', memberId: 'maya', value: 'interested' },
+  ],
+  concerns: [
+    { id: 'lisbon-concern-1', placeId: 'time-out-market', memberId: 'dev', kind: 'price', note: 'May be above my meal budget' },
+    { id: 'lisbon-concern-2', placeId: 'miradouro', memberId: 'sam', kind: 'effort', note: 'The steep route may be difficult' },
+  ],
+  recommendations: [], assignments: [], planRevision: 0,
+};

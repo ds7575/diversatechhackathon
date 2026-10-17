@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeReelUrl, validateTrip, validateAssignments, validateRecommendation, validatePreferences, validateFirmLimits, validateMemberCriteria } from '../contracts/index.js';
-import { demoSnapshot } from '../contracts/fixtures.js';
+import { demoSnapshot, lisbonSnapshot } from '../contracts/fixtures.js';
 import { generateItinerary } from '../utils/itinerary.js';
 import { buildGroupRecommendation, createRecommendationInput } from '../utils/recommendation.js';
 import { buildTripBoard } from '../utils/trip-board.js';
+import { toBoardingPassCard, toFrontendTripBoard } from '../utils/frontend-card.js';
 const demo = () => structuredClone(demoSnapshot);
 test('normalizes duplicate Reel links and rejects unsafe or unrelated URLs', () => {
  assert.equal(normalizeReelUrl('https://instagram.com/reel/Ab_1/?igsh=abc'), 'https://www.instagram.com/reel/Ab_1/');
@@ -104,4 +105,48 @@ test('trip board gives unresearched places safe fallback copy', () => {
  assert.equal(board.ideas.length,2);
  assert.equal(board.ideas[0].headline,'More information needed');
  assert.equal(board.ideas[0].sourceReel.thumbnailUrl,'https://images.example/reel-demo.jpg');
+});
+test('Lisbon fixture flows from member evaluations to frontend boarding passes', () => {
+ const input=structuredClone(lisbonSnapshot);
+ const modelOutput={
+  'time-out-market': [
+   {memberId:'maya',fit:'strong',matchedCriteria:['local food','markets'],conflicts:[]},
+   {memberId:'dev',fit:'mixed',matchedCriteria:['local food'],conflicts:['budget','crowds']},
+   {memberId:'sam',fit:'good',matchedCriteria:[],conflicts:[]},
+  ],
+  'pasteis-belem': [
+   {memberId:'maya',fit:'good',matchedCriteria:['local food'],conflicts:[]},
+   {memberId:'dev',fit:'good',matchedCriteria:['architecture'],conflicts:['crowds']},
+   {memberId:'sam',fit:'mixed',matchedCriteria:['history'],conflicts:['distance']},
+  ],
+  miradouro: [
+   {memberId:'maya',fit:'mixed',matchedCriteria:[],conflicts:['effort']},
+   {memberId:'dev',fit:'mixed',matchedCriteria:['architecture'],conflicts:['distance']},
+   {memberId:'sam',fit:'insufficient_information',matchedCriteria:['views'],conflicts:['mobility']},
+  ],
+ };
+ input.recommendations=input.places.map(place=>buildGroupRecommendation({
+  place,members:input.members,evaluations:modelOutput[place.id],
+  evidenceStatus:place.matchStatus==='confirmed'?'confirmed':'uncertain',
+ }));
+ input.assignments=generateItinerary(input);
+ const board=buildTripBoard(input);
+ const frontend=toFrontendTripBoard(board,{members:input.members,reactions:input.reactions,concerns:input.concerns,currentMemberId:'dev'});
+ const cards=[...frontend.days.flatMap(day=>day.cards),...frontend.ideas];
+ assert.equal(cards.length,input.places.length);
+ assert.ok(cards.every(card=>card.sourceReel?.url && card.sourceReel?.thumbnailUrl));
+ const market=cards.find(card=>card.placeId==='time-out-market').boardingPass;
+ assert.deepEqual(Object.keys(market),['name','summary','location','cost','caveats','label','reason','contributors','reelUrl','thumbnailUrl','counts','mine']);
+ assert.equal(market.label,'strong'); assert.equal(market.cost,'EUR 20 pp');
+ assert.deepEqual(market.contributors,['Maya','Dev']); assert.equal(market.counts.interested,2);
+ assert.equal(market.counts.price,1); assert.equal(market.mine,'interested');
+ assert.match(market.reason,/Maya and Dev's interest in local food/);
+ assert.equal(frontend.ideas[0].placeId,'miradouro');
+ assert.equal(frontend.ideas[0].boardingPass.label,'needs_info');
+});
+test('frontend adapter uses safe fallbacks for a manual place without a Reel', () => {
+ const card={placeId:'manual',name:'Manual idea',area:null,sourceReel:null,brief:null,practical:{},verdict:'needs_more_information',headline:'More information needed',text:'Still researching.'};
+ const result=toBoardingPassCard({card,members:[]});
+ assert.equal(result.location,'Location unknown'); assert.equal(result.cost,'Cost unknown');
+ assert.equal(result.reelUrl,''); assert.equal(result.thumbnailUrl,null); assert.equal(result.label,'needs_info');
 });

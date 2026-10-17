@@ -31,10 +31,12 @@ function makeCard(place, recommendation, assignment, sourceReel) {
     area: place.area ?? null,
     sourceReel,
     brief: place.brief ?? null,
+    practical: place.practical ?? {},
     verdict: recommendation.verdict,
     score: recommendation.score,
     headline: recommendation.headline,
     text: recommendation.text,
+    memberEvaluations: recommendation.memberEvaluations ?? [],
     reason: assignment?.reason ?? 'Saved idea',
     manual: assignment?.manual ?? false,
   };

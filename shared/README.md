@@ -7,6 +7,7 @@ Only shared/ is implemented. See [contracts/README.md](contracts/README.md) for 
 - utils/itinerary.js: pure deterministic day grouping, area affinity, interest ranking, capacity overflow and preserved manual edits.
 - utils/recommendation.js: prepares factual model input, validates per-member assessments, and produces concise group recommendation copy.
 - utils/trip-board.js: builds the frontend-ready trip overview, day columns, and unassigned idea cards for a Pinterest-style board.
+- utils/frontend-card.js: maps board cards, reactions, concerns, and Reel sources into Person 1's current BoardingPassCard props.
 - database/schema.js: SQLite-compatible schema exported as schemaSql; no service or migration runs automatically.
 
 Run `cd shared && npm test` with Node 22+ (or `node --test shared/tests/*.test.js` from repo root). No install needed. SQLite verification uses Python's standard sqlite3 module via `python3 shared/tests/schema_test.py`.

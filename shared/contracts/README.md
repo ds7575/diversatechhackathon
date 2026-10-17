@@ -29,6 +29,8 @@ Recommendation: `{placeId,verdict,score,headline,text,evidenceStatus,memberEvalu
 
 Trip board: `buildTripBoard(snapshot)` converts normalized snapshot records into `{tripId,title,destination,dateRange,gist,days,ideas}`. Each day is `{date,label,gist,cards}` and `ideas` contains unassigned or not-yet-planned cards. Cards include `{placeId,name,area,sourceReel,brief,verdict,score,headline,text,reason,manual}`. `sourceReel` contains `{importId,url,thumbnailUrl,contributorIds}` so Person 1 can use the original Reel thumbnail as the Pinterest pin image and link the card back to its Reel. A missing thumbnail remains `null`, and missing research receives neutral fallback copy rather than an invented recommendation.
 
+Frontend adapter: `toFrontendTripBoard(board, context)` preserves the board structure and adds a `boardingPass` object to every card. Its fields match Person 1's current `BoardingPassCard`: `{name,summary,location,cost,caveats,label,reason,contributors,reelUrl,counts,mine}`. It also supplies `thumbnailUrl` for the planned Reel-thumbnail enhancement. `context` is `{members,reactions,concerns,currentMemberId?}`. This mapping belongs in shared code so the UI does not duplicate aggregation or recommendation rules.
+
 ## Ownership, persistence and concurrency
 
 Person 1: import fixtures into mock hooks now; later swap in the route calls. On manual moves/removals, set `manual:true`, move removals to null date, and renumber destination positions. Submit the full assignment list and last planRevision. On 409, reload and let the user reconcile edits. Explicit replacement confirmation sets replaceManual true; never do this by default.
