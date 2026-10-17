@@ -9,10 +9,12 @@ import { toBoardingPassCard, toFrontendItinerary, toFrontendReels, toFrontendTri
 import { adaptInstagramExtraction } from '../utils/instagram-import.js';
 import { distanceKm, hasCoordinates, orderByProximity } from '../utils/geo.js';
 import { applyTripEvent } from '../realtime/events.js';
+import { deduplicatePlaceRecords } from '../utils/place-deduplication.js';
+import { orderByTravelTime, validateTravelTimes } from '../utils/travel-time.js';
 import * as sharedPackage from '../index.js';
 const demo = () => structuredClone(demoSnapshot);
 test('package root exposes the stable integration surface', () => {
- for (const name of ['adaptInstagramExtraction','buildGroupRecommendation','generateItinerary','buildTripBoard','toFrontendTripBoard','toFrontendItinerary','toFrontendReels','validateTrip','distanceKm','applyTripEvent'])
+ for (const name of ['adaptInstagramExtraction','buildGroupRecommendation','generateItinerary','buildTripBoard','toFrontendTripBoard','toFrontendItinerary','toFrontendReels','validateTrip','distanceKm','applyTripEvent','deduplicatePlaceRecords','orderByTravelTime'])
   assert.equal(typeof sharedPackage[name],'function');
  assert.equal(sharedPackage.lisbonSnapshot.trip.destination,'Lisbon');
  assert.equal(typeof sharedPackage.schemaSql,'string');
@@ -44,6 +46,39 @@ test('clusters coordinate-aware itinerary stops while preserving day capacity', 
  assert.equal(result.find(item=>item.placeId==='b2').date,input.trip.endDate);
  assert.match(result.find(item=>item.placeId==='a2').reason,/Grouped within/);
  assert.throws(()=>generateItinerary({...input,maxClusterKm:0}));
+});
+test('uses provider travel minutes before straight-line proximity', () => {
+ const input=demo();
+ input.places=['a','b','c','d'].map(id=>({id,tripId:input.trip.id,name:id.toUpperCase(),matchStatus:'confirmed',area:null,latitude:null,longitude:null,brief:null,practical:{}}));
+ const travelTimes=[
+  {originPlaceId:'a',destinationPlaceId:'b',minutes:10,distanceKm:2,mode:'transit'},
+  {originPlaceId:'a',destinationPlaceId:'c',minutes:90,distanceKm:20,mode:'transit'},
+  {originPlaceId:'c',destinationPlaceId:'d',minutes:8,distanceKm:1,mode:'transit'},
+ ];
+ const result=generateItinerary({...input,travelTimes,travelMode:'transit',maxTravelMinutes:45});
+ assert.equal(result.find(item=>item.placeId==='a').date,input.trip.startDate);
+ assert.equal(result.find(item=>item.placeId==='b').date,input.trip.startDate);
+ assert.equal(result.find(item=>item.placeId==='c').date,input.trip.endDate);
+ assert.equal(result.find(item=>item.placeId==='d').date,input.trip.endDate);
+ assert.match(result.find(item=>item.placeId==='b').reason,/10 min by transit/);
+ assert.match(result.find(item=>item.placeId==='c').reason,/nearest route is 90 min/);
+ assert.deepEqual(orderByTravelTime(input.places.slice(1),travelTimes,{startPlaceId:'a',mode:'transit'}).map(place=>place.id),['b','c','d']);
+ assert.throws(()=>validateTravelTimes([{originPlaceId:'a',destinationPlaceId:'missing',minutes:1,mode:'walk'}],input.places.map(place=>place.id)));
+});
+test('deduplicates the same place across Reels while preserving sources and evidence', () => {
+ const places=[
+  {id:'p1',tripId:'trip-1',name:'Pastéis de Belém',identityKey:'instagram-text:pasteis',matchStatus:'uncertain',area:'Belém',latitude:null,longitude:null,brief:null,practical:{caveats:['Needs verification']}},
+  {id:'p2',tripId:'trip-1',name:'Pasteis de Belem',identityKey:'place-search:google-1',matchStatus:'confirmed',area:'Belem',latitude:38.6975,longitude:-9.2068,brief:'Historic bakery.',practical:{cost:'EUR 5 pp'}},
+  {id:'p3',tripId:'trip-1',name:'Different bakery',identityKey:'place-search:google-2',matchStatus:'confirmed',area:'Belem',latitude:38.6976,longitude:-9.2069,brief:null,practical:{}},
+ ];
+ const before=structuredClone(places);
+ const result=deduplicatePlaceRecords({places,importPlaces:[{importId:'r1',placeId:'p1'},{importId:'r2',placeId:'p2'}],evidence:[{id:'e1',placeId:'p2'}]});
+ assert.deepEqual(places,before); assert.equal(result.places.length,2);
+ assert.equal(result.aliases.p2,'p1'); assert.equal(result.places[0].matchStatus,'confirmed');
+ assert.equal(result.places[0].identityKey,'place-search:google-1'); assert.equal(result.places[0].brief,'Historic bakery.');
+ assert.deepEqual(result.importPlaces,[{importId:'r1',placeId:'p1'},{importId:'r2',placeId:'p1'}]);
+ assert.equal(result.evidence[0].placeId,'p1');
+ assert.throws(()=>deduplicatePlaceRecords({places,importPlaces:[{importId:'r3',placeId:'missing'}]}));
 });
 test('applies realtime trip events immutably and rejects stale plan revisions', () => {
  const input=demo(); const before=structuredClone(input);
@@ -119,6 +154,8 @@ test('firm limits block recommendations and uncertain places request more inform
  assert.equal(blocked.verdict,'not_recommended'); assert.match(blocked.text,/Member a/);
  const uncertain=buildGroupRecommendation({place:input.places[1],members:input.members,evaluations:evaluations.map(item=>({...item,fit:'good',conflicts:[]}))});
  assert.equal(uncertain.verdict,'needs_more_information');
+ const partial=buildGroupRecommendation({place:input.places[0],members:input.members,evaluations:evaluations.map((item,index)=>({...item,fit:index?'strong':'insufficient_information',conflicts:[]}))});
+ assert.notEqual(partial.verdict,'strong_match');
 });
 test('creates minimal model input and rejects incomplete or duplicated output', () => {
  const input=demo(); const request=createRecommendationInput({place:input.places[0],members:input.members,evidence:input.evidence});

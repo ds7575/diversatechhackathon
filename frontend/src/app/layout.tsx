@@ -16,7 +16,7 @@ const spaceMono = Space_Mono({
 const caveat = Caveat({ variable: "--font-caveat", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Group Travel Planner",
+  title: "Travel Sync",
   description: "Plan trips with friends from shared Reels",
 };
 
