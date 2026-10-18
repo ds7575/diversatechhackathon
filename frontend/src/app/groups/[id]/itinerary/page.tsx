@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { FlightPath } from "@/components/ui/FlightPath";
 import { api } from "@/lib/api";
 import { TripHeader } from "@/components/TripHeader";
+import { Logo } from "@/components/ui/Logo";
 import { DayTimeline, PlaceMenu } from "@/components/DayTimeline";
 import type { Group, Itinerary, TimeBlock } from "@/lib/types";
 
@@ -52,12 +53,15 @@ function ItineraryPageContent() {
 
   return (
     <main className="mx-auto w-full max-w-[480px] px-4 pb-12 pt-6">
-      <Link
-        href={`/groups/${id}`}
-        className="label-mono flex min-h-11 items-center text-xs font-bold text-airmail-blue underline"
-      >
-        Back to trip
-      </Link>
+      <div className="flex items-center gap-3">
+        <Logo size="sm" />
+        <Link
+          href={`/groups/${id}`}
+          className="label-mono flex min-h-11 items-center text-xs font-bold text-airmail-blue underline"
+        >
+          Back to trip
+        </Link>
+      </div>
       {group && (
         <TripHeader name={group.name} destination={group.destination} start={group.start_date} end={group.end_date} />
       )}

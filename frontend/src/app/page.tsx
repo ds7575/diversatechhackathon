@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GroupCard } from "@/components/GroupCard";
+import { Logo } from "@/components/ui/Logo";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { api } from "@/lib/api";
 import type { Group } from "@/lib/types";
@@ -18,7 +19,10 @@ export default function Home() {
   return (
     <main className="mx-auto w-full max-w-[480px] px-4 pb-28 pt-8">
       <header className="mb-8 rounded-2xl border border-ink/10 bg-card p-6">
-        <h1 className="font-heading text-[44px] font-extrabold leading-none tracking-tight">My Trips</h1>
+        <div className="flex items-center gap-[14px]">
+          <Logo size="lg" />
+          <h1 className="font-heading text-[44px] font-extrabold leading-none tracking-tight">My Trips</h1>
+        </div>
       </header>
       <div className="flex flex-col gap-4">
         {error && <p role="alert" className="font-bold text-airmail-red">Couldn&apos;t load trips.</p>}

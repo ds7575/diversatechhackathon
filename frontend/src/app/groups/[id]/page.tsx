@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
+import { Logo } from "@/components/ui/Logo";
 import { AddMembersSheet } from "@/components/AddMembersSheet";
 import { GenerateBar } from "@/components/GenerateBar";
 import { PrefsSection } from "@/components/PrefsSection";
@@ -61,9 +62,12 @@ function GroupPageContent() {
 
   return (
     <main className="mx-auto w-full max-w-[480px] px-4 pb-40 pt-6">
-      <Link href="/" className="label-mono flex min-h-11 items-center text-xs font-bold text-airmail-blue underline">
-        All trips
-      </Link>
+      <div className="flex items-center gap-3">
+        <Logo size="sm" />
+        <Link href="/" className="label-mono flex min-h-11 items-center text-xs font-bold text-airmail-blue underline">
+          All trips
+        </Link>
+      </div>
       {group === undefined && <p className="label-mono text-xs">Loading…</p>}
       {group === null && <p role="alert" className="font-bold text-airmail-red">Trip not found.</p>}
       {group && (
